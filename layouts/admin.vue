@@ -22,9 +22,7 @@
             class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-dark-800 transition-colors duration-200"
             :class="{ 'bg-primary-500/20 text-primary-400': $route.name === 'admin-dashboard' }"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
-            </svg>
+            <UIcon name="heroicons:squares-2x2" class="w-5 h-5" />
             <span>Dashboard</span>
           </NuxtLink>
 
@@ -33,9 +31,7 @@
             class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-dark-800 transition-colors duration-200"
             :class="{ 'bg-primary-500/20 text-primary-400': $route.name === 'admin-users' }"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
-            </svg>
+            <UIcon name="heroicons:users" class="w-5 h-5" />
             <span>Users</span>
           </NuxtLink>
 
@@ -44,9 +40,7 @@
             class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-dark-800 transition-colors duration-200"
             :class="{ 'bg-primary-500/20 text-primary-400': $route.name === 'admin-documents' }"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-            </svg>
+            <UIcon name="heroicons:document-text" class="w-5 h-5" />
             <span>Documents</span>
           </NuxtLink>
 
@@ -55,9 +49,7 @@
             class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-dark-800 transition-colors duration-200"
             :class="{ 'bg-primary-500/20 text-primary-400': $route.name === 'admin-analytics' }"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-            </svg>
+            <UIcon name="heroicons:chart-bar" class="w-5 h-5" />
             <span>Analytics</span>
           </NuxtLink>
 
@@ -69,18 +61,14 @@
               :class="{ 'bg-primary-500/20 text-primary-400': $route.path.includes('/admin/integrations') }"
             >
               <div class="flex items-center space-x-3">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
-                </svg>
+                <UIcon name="heroicons:link" class="w-5 h-5" />
                 <span>Integrations</span>
               </div>
-              <svg
+              <UIcon
+                name="heroicons:chevron-down"
                 class="w-4 h-4 transition-transform duration-200"
                 :class="{ 'rotate-180': integrationsOpen }"
-                fill="none" stroke="currentColor" viewBox="0 0 24 24"
-              >
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-              </svg>
+              />
             </button>
             <div v-show="integrationsOpen" class="ml-8 mt-2 space-y-1">
               <NuxtLink
@@ -138,9 +126,7 @@
                 <span class="text-white text-sm font-medium">A</span>
               </div>
               <span class="hidden sm:block">Admin</span>
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-              </svg>
+              <UIcon name="heroicons:chevron-down" class="w-4 h-4" />
             </button>
 
             <div v-show="profileOpen" class="absolute right-0 top-full mt-2 w-48 bg-dark-900 border border-dark-700 rounded-lg shadow-xl py-2 animate-fade-in">
