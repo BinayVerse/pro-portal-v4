@@ -9,7 +9,7 @@
     <!-- Stats Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <!-- Total Users -->
-      <div class="bg-dark-800 rounded-lg p-6 border border-dark-700">
+      <UCard class="bg-dark-800 border-dark-700">
         <div class="flex items-center justify-between">
           <div>
             <p class="text-gray-400 text-sm font-medium">Total Users</p>
@@ -24,10 +24,10 @@
             <UIcon name="heroicons:users" class="w-6 h-6 text-blue-400" />
           </div>
         </div>
-      </div>
+      </UCard>
 
       <!-- Documents -->
-      <div class="bg-dark-800 rounded-lg p-6 border border-dark-700">
+      <UCard class="bg-dark-800 border-dark-700">
         <div class="flex items-center justify-between">
           <div>
             <p class="text-gray-400 text-sm font-medium">Documents</p>
@@ -42,10 +42,10 @@
             <UIcon name="heroicons:document-text" class="w-6 h-6 text-green-400" />
           </div>
         </div>
-      </div>
+      </UCard>
 
       <!-- Conversations -->
-      <div class="bg-dark-800 rounded-lg p-6 border border-dark-700">
+      <UCard class="bg-dark-800 border-dark-700">
         <div class="flex items-center justify-between">
           <div>
             <p class="text-gray-400 text-sm font-medium">Conversations</p>
@@ -60,10 +60,10 @@
             <UIcon name="heroicons:chat-bubble-left-right" class="w-6 h-6 text-purple-400" />
           </div>
         </div>
-      </div>
+      </UCard>
 
       <!-- Tokens Used -->
-      <div class="bg-dark-800 rounded-lg p-6 border border-dark-700">
+      <UCard class="bg-dark-800 border-dark-700">
         <div class="flex items-center justify-between">
           <div>
             <p class="text-gray-400 text-sm font-medium">Tokens Used</p>
@@ -78,7 +78,7 @@
             <UIcon name="heroicons:bolt" class="w-6 h-6 text-orange-400" />
           </div>
         </div>
-      </div>
+      </UCard>
     </div>
 
     <!-- Main Content Grid -->
