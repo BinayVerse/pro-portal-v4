@@ -86,7 +86,6 @@
                 variant="ghost"
                 justify="start"
                 size="sm"
-                icon:"heroicons:puzzle-piece"
                 :color="$route.name === 'admin-integrations' ? 'primary' : 'gray'"
                 class="w-full"
               >
