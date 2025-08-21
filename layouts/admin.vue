@@ -79,41 +79,60 @@
               />
             </button>
             <div v-show="integrationsOpen" class="ml-8 mt-2 space-y-1">
-              <NuxtLink
+              <UButton
                 to="/admin/integrations"
-                class="block px-3 py-2 text-sm text-gray-400 hover:text-white hover:bg-dark-800 rounded-lg transition-colors"
-                :class="{ 'bg-primary-500/20 text-primary-400': $route.name === 'admin-integrations' }"
+                variant="ghost"
+                justify="start"
+                size="sm"
+                :color="$route.name === 'admin-integrations' ? 'primary' : 'gray'"
+                class="w-full"
               >
                 Overview
-              </NuxtLink>
-              <NuxtLink
+              </UButton>
+              <UButton
                 to="/admin/integrations/slack"
-                class="block px-3 py-2 text-sm text-gray-400 hover:text-white hover:bg-dark-800 rounded-lg transition-colors"
-                :class="{ 'bg-primary-500/20 text-primary-400': $route.name === 'admin-integrations-slack' }"
+                variant="ghost"
+                justify="start"
+                size="sm"
+                icon="mdi:slack"
+                :color="$route.name === 'admin-integrations-slack' ? 'primary' : 'gray'"
+                class="w-full"
               >
                 Slack
-              </NuxtLink>
-              <NuxtLink
+              </UButton>
+              <UButton
                 to="/admin/integrations/teams"
-                class="block px-3 py-2 text-sm text-gray-400 hover:text-white hover:bg-dark-800 rounded-lg transition-colors"
-                :class="{ 'bg-primary-500/20 text-primary-400': $route.name === 'admin-integrations-teams' }"
+                variant="ghost"
+                justify="start"
+                size="sm"
+                icon="mdi:microsoft-teams"
+                :color="$route.name === 'admin-integrations-teams' ? 'primary' : 'gray'"
+                class="w-full"
               >
                 Teams
-              </NuxtLink>
-              <NuxtLink
+              </UButton>
+              <UButton
                 to="/admin/integrations/whatsapp"
-                class="block px-3 py-2 text-sm text-gray-400 hover:text-white hover:bg-dark-800 rounded-lg transition-colors"
-                :class="{ 'bg-primary-500/20 text-primary-400': $route.name === 'admin-integrations-whatsapp' }"
+                variant="ghost"
+                justify="start"
+                size="sm"
+                icon="mdi:whatsapp"
+                :color="$route.name === 'admin-integrations-whatsapp' ? 'primary' : 'gray'"
+                class="w-full"
               >
                 WhatsApp
-              </NuxtLink>
-              <NuxtLink
+              </UButton>
+              <UButton
                 to="/admin/integrations/imessage"
-                class="block px-3 py-2 text-sm text-gray-400 hover:text-white hover:bg-dark-800 rounded-lg transition-colors"
-                :class="{ 'bg-primary-500/20 text-primary-400': $route.name === 'admin-integrations-imessage' }"
+                variant="ghost"
+                justify="start"
+                size="sm"
+                icon="heroicons:device-phone-mobile"
+                :color="$route.name === 'admin-integrations-imessage' ? 'primary' : 'gray'"
+                class="w-full"
               >
                 iMessage
-              </NuxtLink>
+              </UButton>
             </div>
           </div>
         </div>
