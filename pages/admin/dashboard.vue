@@ -234,6 +234,26 @@ definePageMeta({
 
 const loading = ref(true)
 
+// Table sorting
+const userSort = ref({ column: 'name', direction: 'asc' })
+const documentSort = ref({ column: 'createdAt', direction: 'desc' })
+
+// Table columns
+const userColumns = [
+  { key: 'initials', label: '', sortable: false },
+  { key: 'name', label: 'Name', sortable: true },
+  { key: 'email', label: 'Email', sortable: true },
+  { key: 'role', label: 'Role', sortable: true },
+  { key: 'status', label: 'Status', sortable: true }
+]
+
+const documentColumns = [
+  { key: 'icon', label: '', sortable: false },
+  { key: 'fileInfo', label: 'Document', sortable: false },
+  { key: 'status', label: 'Status', sortable: true },
+  { key: 'createdAt', label: 'Created', sortable: true }
+]
+
 const stats = ref({
   totalUsers: 2847,
   userGrowth: 12,
