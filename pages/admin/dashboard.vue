@@ -107,34 +107,24 @@
               <div class="h-6 w-16 bg-gray-600 rounded-full"></div>
             </div>
           </div>
-          <div v-else class="space-y-4">
-            <div
-              v-for="user in recentUsers"
-              :key="user.id"
-              class="flex items-center justify-between"
-            >
-              <div class="flex items-center space-x-3">
-                <div
-                  class="w-10 h-10 bg-primary-500/20 rounded-full flex items-center justify-center"
-                >
-                  <span class="text-primary-400 font-medium text-sm">{{ user.initials }}</span>
-                </div>
-                <div>
-                  <p class="text-white font-medium">{{ user.name }}</p>
-                  <p class="text-gray-400 text-sm">{{ user.email }}</p>
-                </div>
+          <UTable
+            v-else
+            :rows="sortedUsers"
+            :columns="userColumns"
+            :sort="userSort"
+            @update:sort="userSort = $event"
+          >
+            <template #initials-data="{ row }">
+              <div class="w-8 h-8 bg-primary-500/20 rounded-full flex items-center justify-center">
+                <span class="text-primary-400 font-medium text-xs">{{ row.initials }}</span>
               </div>
-              <div class="text-right">
-                <span
-                  :class="getUserStatusClass(user.status)"
-                  class="px-2 py-1 text-xs rounded-full font-medium"
-                >
-                  {{ user.status }}
-                </span>
-                <p class="text-gray-400 text-xs mt-1">{{ user.role }}</p>
-              </div>
-            </div>
-          </div>
+            </template>
+            <template #status-data="{ row }">
+              <UBadge :color="getStatusColor(row.status)" variant="soft" size="xs">
+                {{ row.status }}
+              </UBadge>
+            </template>
+          </UTable>
         </div>
       </div>
 
