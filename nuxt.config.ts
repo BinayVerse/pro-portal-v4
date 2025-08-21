@@ -12,6 +12,7 @@ export default defineNuxtConfig({
   ui: {
     global: true,
     icons: ['heroicons', 'simple-icons'],
+    safelistColors: ['primary', 'brand'],
   },
 
   // Icon Configuration
@@ -39,7 +40,7 @@ export default defineNuxtConfig({
   // TailwindCSS
   tailwindcss: {
     cssPath: '~/assets/css/tailwind.css',
-    configPath: 'tailwind.config.js',
+    configPath: 'tailwind.config.ts',
   },
 
   // Nitro (Server)
