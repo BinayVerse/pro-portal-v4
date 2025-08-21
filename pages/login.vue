@@ -152,8 +152,8 @@ const loginForm = ref({
 
 // Auto-fill demo credentials function
 const fillDemoCredentials = () => {
-  loginForm.value.email = 'demo@demo.com'
-  loginForm.value.password = '123'
+  loginForm.value.email = 'demo@example.com'
+  loginForm.value.password = 'password'
   showNotification('Demo credentials filled', 'info', { duration: 2000 })
 }
 
