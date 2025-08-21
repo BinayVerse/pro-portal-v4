@@ -12,6 +12,7 @@
           <div class="mb-4 space-y-2">
             <p class="text-blue-400">Test blue-400 (should be blue)</p>
             <p class="text-primary-400">Test primary-400 (should be blue with our config)</p>
+            <p class="text-brand-400">Test brand-400 (should be blue)</p>
             <p class="text-red-400">Test red-400 (should be red)</p>
           </div>
           <p class="text-xl text-gray-300 mb-8 max-w-3xl mx-auto animate-slide-up">
