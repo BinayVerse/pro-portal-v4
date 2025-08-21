@@ -147,7 +147,22 @@
 <script setup lang="ts">
 const route = useRoute()
 const integrationsOpen = ref(true)
-const profileOpen = ref(false)
+
+const profileItems = [
+  [{
+    label: 'My Account',
+    icon: 'heroicons:user',
+    click: () => {}
+  }, {
+    label: 'Change Password',
+    icon: 'heroicons:key',
+    click: () => {}
+  }], [{
+    label: 'Logout',
+    icon: 'heroicons:arrow-right-on-rectangle',
+    click: () => navigateTo('/login')
+  }]
+]
 
 const pageTitle = computed(() => {
   const titles: Record<string, string> = {
