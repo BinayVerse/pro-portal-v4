@@ -96,9 +96,9 @@
             class="h-4 w-4 text-primary-500 bg-dark-800 border-dark-600 rounded focus:ring-primary-500 focus:ring-2"
           />
           <label for="terms" class="ml-2 text-sm text-gray-300">
-            I agree to the 
+            I agree to the
             <a href="#" class="text-primary-400 hover:text-primary-300">Terms of Service</a>
-            and 
+            and
             <a href="#" class="text-primary-400 hover:text-primary-300">Privacy Policy</a>
           </label>
         </div>
@@ -142,9 +142,7 @@
 
       <!-- Login link -->
       <div class="text-center">
-        <NuxtLink to="/login" class="btn-outline w-full">
-          Sign In Instead
-        </NuxtLink>
+        <NuxtLink to="/login" class="btn-outline w-full"> Sign In Instead </NuxtLink>
       </div>
     </div>
   </div>
@@ -152,7 +150,7 @@
 
 <script setup lang="ts">
 definePageMeta({
-  layout: false
+  layout: 'minimal',
 })
 
 const { showNotification } = useNotification()
@@ -164,7 +162,7 @@ const signupForm = ref({
   email: '',
   password: '',
   company: '',
-  agreeToTerms: false
+  agreeToTerms: false,
 })
 
 const handleSignup = async () => {
@@ -174,16 +172,20 @@ const handleSignup = async () => {
   }
 
   loading.value = true
-  
+
   try {
     // Simulate signup process
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    showNotification('Account created successfully! Please check your email to verify your account.', 'success', {
-      title: 'Welcome to Provento.ai!',
-      duration: 5000
-    })
-    
+    await new Promise((resolve) => setTimeout(resolve, 2000))
+
+    showNotification(
+      'Account created successfully! Please check your email to verify your account.',
+      'success',
+      {
+        title: 'Welcome to Provento.ai!',
+        duration: 5000,
+      },
+    )
+
     // Redirect to login
     await navigateTo('/login')
   } catch (error) {

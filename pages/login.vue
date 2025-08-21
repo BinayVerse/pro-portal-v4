@@ -117,9 +117,7 @@
       <!-- Register link -->
       <div class="text-center space-y-3">
         <NuxtLink to="/signup" class="btn-primary w-full"> Create New Account </NuxtLink>
-        <NuxtLink to="/book-meeting" class="btn-outline w-full ml-3">
-          Book a Meeting
-        </NuxtLink>
+        <NuxtLink to="/book-meeting" class="btn-outline w-full ml-3"> Book a Meeting </NuxtLink>
 
         <!-- Toast Demo Link -->
         <NuxtLink
@@ -135,7 +133,7 @@
 
 <script setup lang="ts">
 definePageMeta({
-  layout: false
+  layout: 'minimal',
 })
 
 const router = useRouter()
@@ -152,8 +150,8 @@ const loginForm = ref({
 
 // Auto-fill demo credentials function
 const fillDemoCredentials = () => {
-  loginForm.value.email = 'demo@demo.com'
-  loginForm.value.password = '123'
+  loginForm.value.email = 'demo@example.com'
+  loginForm.value.password = 'password'
   showNotification('Demo credentials filled', 'info', { duration: 2000 })
 }
 

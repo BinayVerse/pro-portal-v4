@@ -17,10 +17,10 @@
           <div class="flex items-center space-x-2">
             <span class="text-blue-200">Email:</span>
             <code class="bg-blue-800/30 px-2 py-1 rounded text-blue-100 font-mono text-xs"
-              >demo@demo.com</code
+              >demo@example.com</code
             >
             <button
-              @click="copyToClipboard('demo@demo.com')"
+              @click="copyToClipboard('demo@example.com')"
               class="text-blue-300 hover:text-blue-200 transition-colors"
               title="Copy email"
             >
@@ -37,10 +37,10 @@
           <div class="flex items-center space-x-2">
             <span class="text-blue-200">Password:</span>
             <code class="bg-blue-800/30 px-2 py-1 rounded text-blue-100 font-mono text-xs"
-              >123</code
+              >password</code
             >
             <button
-              @click="copyToClipboard('123')"
+              @click="copyToClipboard('password')"
               class="text-blue-300 hover:text-blue-200 transition-colors"
               title="Copy password"
             >
