@@ -152,7 +152,7 @@
 
 <script setup lang="ts">
 definePageMeta({
-  layout: false
+  layout: 'minimal'
 })
 
 const { showNotification } = useNotification()
