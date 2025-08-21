@@ -390,6 +390,47 @@ const formatTime = (date: Date) => {
   }
 }
 
+// Computed properties for sorted data
+const sortedUsers = computed(() => {
+  const users = [...recentUsers.value]
+  if (userSort.value.column) {
+    users.sort((a, b) => {
+      const aVal = a[userSort.value.column]
+      const bVal = b[userSort.value.column]
+      const direction = userSort.value.direction === 'asc' ? 1 : -1
+
+      if (typeof aVal === 'string' && typeof bVal === 'string') {
+        return aVal.localeCompare(bVal) * direction
+      }
+      return (aVal < bVal ? -1 : aVal > bVal ? 1 : 0) * direction
+    })
+  }
+  return users
+})
+
+const sortedDocuments = computed(() => {
+  const docs = [...recentDocuments.value]
+  if (documentSort.value.column) {
+    docs.sort((a, b) => {
+      let aVal = a[documentSort.value.column]
+      let bVal = b[documentSort.value.column]
+      const direction = documentSort.value.direction === 'asc' ? 1 : -1
+
+      // Handle date sorting
+      if (documentSort.value.column === 'createdAt') {
+        aVal = new Date(aVal).getTime()
+        bVal = new Date(bVal).getTime()
+      }
+
+      if (typeof aVal === 'string' && typeof bVal === 'string') {
+        return aVal.localeCompare(bVal) * direction
+      }
+      return (aVal < bVal ? -1 : aVal > bVal ? 1 : 0) * direction
+    })
+  }
+  return docs
+})
+
 const getUserStatusClass = (status: string) => {
   const classes: Record<string, string> = {
     Active: 'bg-green-500/20 text-green-400',
