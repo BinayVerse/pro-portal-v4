@@ -209,17 +209,14 @@
                 <p class="text-gray-400 text-sm">{{ integration.description }}</p>
               </div>
             </div>
-            <button
+            <UButton
               @click="toggleIntegration(integration)"
-              :class="
-                integration.isConnected
-                  ? 'bg-green-500 hover:bg-green-600'
-                  : 'bg-blue-500 hover:bg-blue-600'
-              "
-              class="px-3 py-1 text-white text-sm rounded-lg transition-colors"
+              :color="integration.isConnected ? 'green' : 'blue'"
+              size="xs"
+              :icon="integration.isConnected ? 'heroicons:check' : 'heroicons:link'"
             >
               {{ integration.isConnected ? 'Connected' : 'Connect' }}
-            </button>
+            </UButton>
           </div>
         </div>
       </div>
