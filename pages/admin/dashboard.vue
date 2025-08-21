@@ -167,7 +167,9 @@
             <template #fileInfo-data="{ row }">
               <div>
                 <p class="text-white font-medium text-sm">{{ row.title }}</p>
-                <p class="text-gray-400 text-xs">{{ row.fileName }} • {{ formatFileSize(row.fileSize) }}</p>
+                <p class="text-gray-400 text-xs">
+                  {{ row.fileName }} • {{ formatFileSize(row.fileSize) }}
+                </p>
               </div>
             </template>
             <template #status-data="{ row }">
@@ -226,7 +228,7 @@
 
 <script setup lang="ts">
 definePageMeta({
-  layout: 'admin'
+  layout: 'admin',
 })
 
 const loading = ref(true)
@@ -241,14 +243,14 @@ const userColumns = [
   { key: 'name', label: 'Name', sortable: true },
   { key: 'email', label: 'Email', sortable: true },
   { key: 'role', label: 'Role', sortable: true },
-  { key: 'status', label: 'Status', sortable: true }
+  { key: 'status', label: 'Status', sortable: true },
 ]
 
 const documentColumns = [
   { key: 'icon', label: '', sortable: false },
   { key: 'fileInfo', label: 'Document', sortable: false },
   { key: 'status', label: 'Status', sortable: true },
-  { key: 'createdAt', label: 'Created', sortable: true }
+  { key: 'createdAt', label: 'Created', sortable: true },
 ]
 
 const stats = ref({
@@ -448,7 +450,7 @@ const getDocumentStatusColor = (status: string) => {
 
 const getIntegrationIcon = (name: string) => {
   const iconMap: Record<string, string> = {
-    'Slack': 'mdi:slack',
+    Slack: 'mdi:slack',
     'Microsoft Teams': 'mdi:microsoft-teams',
     'WhatsApp Business': 'mdi:whatsapp',
   }
@@ -457,7 +459,7 @@ const getIntegrationIcon = (name: string) => {
 
 const getIntegrationIconColor = (name: string) => {
   const colorMap: Record<string, string> = {
-    'Slack': 'text-purple-400',
+    Slack: 'text-purple-400',
     'Microsoft Teams': 'text-blue-400',
     'WhatsApp Business': 'text-green-400',
   }
