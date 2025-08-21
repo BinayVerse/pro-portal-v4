@@ -17,41 +17,49 @@
       <!-- Admin Navigation -->
       <nav class="flex-1 p-6">
         <div class="space-y-2">
-          <NuxtLink
+          <UButton
             to="/admin/dashboard"
-            class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-dark-800 transition-colors duration-200"
-            :class="{ 'bg-primary-500/20 text-primary-400': $route.name === 'admin-dashboard' }"
+            variant="ghost"
+            justify="start"
+            icon="heroicons:squares-2x2"
+            :color="$route.name === 'admin-dashboard' ? 'primary' : 'gray'"
+            class="w-full"
           >
-            <UIcon name="heroicons:squares-2x2" class="w-5 h-5" />
-            <span>Dashboard</span>
-          </NuxtLink>
+            Dashboard
+          </UButton>
 
-          <NuxtLink
+          <UButton
             to="/admin/users"
-            class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-dark-800 transition-colors duration-200"
-            :class="{ 'bg-primary-500/20 text-primary-400': $route.name === 'admin-users' }"
+            variant="ghost"
+            justify="start"
+            icon="heroicons:users"
+            :color="$route.name === 'admin-users' ? 'primary' : 'gray'"
+            class="w-full"
           >
-            <UIcon name="heroicons:users" class="w-5 h-5" />
-            <span>Users</span>
-          </NuxtLink>
+            Users
+          </UButton>
 
-          <NuxtLink
+          <UButton
             to="/admin/documents"
-            class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-dark-800 transition-colors duration-200"
-            :class="{ 'bg-primary-500/20 text-primary-400': $route.name === 'admin-documents' }"
+            variant="ghost"
+            justify="start"
+            icon="heroicons:document-text"
+            :color="$route.name === 'admin-documents' ? 'primary' : 'gray'"
+            class="w-full"
           >
-            <UIcon name="heroicons:document-text" class="w-5 h-5" />
-            <span>Documents</span>
-          </NuxtLink>
+            Documents
+          </UButton>
 
-          <NuxtLink
+          <UButton
             to="/admin/analytics"
-            class="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-dark-800 transition-colors duration-200"
-            :class="{ 'bg-primary-500/20 text-primary-400': $route.name === 'admin-analytics' }"
+            variant="ghost"
+            justify="start"
+            icon="heroicons:chart-bar"
+            :color="$route.name === 'admin-analytics' ? 'primary' : 'gray'"
+            class="w-full"
           >
-            <UIcon name="heroicons:chart-bar" class="w-5 h-5" />
-            <span>Analytics</span>
-          </NuxtLink>
+            Analytics
+          </UButton>
 
           <!-- Integrations with submenu -->
           <div>
