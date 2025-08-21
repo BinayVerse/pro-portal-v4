@@ -8,13 +8,6 @@
             Bring Your Business To Life With The Power Of
             <span class="text-primary-400">Intelligent Conversations</span>
           </h1>
-          <!-- Test colors -->
-          <div class="mb-4 space-y-2">
-            <p class="text-blue-400">Test blue-400 (should be blue)</p>
-            <p class="text-primary-400">Test primary-400 (should be blue with our config)</p>
-            <p class="text-brand-400">Test brand-400 (should be blue)</p>
-            <p class="text-red-400">Test red-400 (should be red)</p>
-          </div>
           <p class="text-xl text-gray-300 mb-8 max-w-3xl mx-auto animate-slide-up">
             Transform your documents into interactive conversations. Upload, organize, and chat with
             your files using advanced AI technology.
