@@ -117,9 +117,7 @@
       <!-- Register link -->
       <div class="text-center space-y-3">
         <NuxtLink to="/signup" class="btn-primary w-full"> Create New Account </NuxtLink>
-        <NuxtLink to="/book-meeting" class="btn-outline w-full ml-3">
-          Book a Meeting
-        </NuxtLink>
+        <NuxtLink to="/book-meeting" class="btn-outline w-full ml-3"> Book a Meeting </NuxtLink>
 
         <!-- Toast Demo Link -->
         <NuxtLink
@@ -135,7 +133,7 @@
 
 <script setup lang="ts">
 definePageMeta({
-  layout: 'minimal'
+  layout: 'minimal',
 })
 
 const router = useRouter()
