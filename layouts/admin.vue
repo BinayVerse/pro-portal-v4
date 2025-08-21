@@ -66,7 +66,9 @@
             <button
               @click="integrationsOpen = !integrationsOpen"
               class="w-full flex items-center justify-between space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-dark-800 transition-colors duration-200"
-              :class="{ 'bg-primary-500/20 text-primary-400': $route.path.includes('/admin/integrations') }"
+              :class="{
+                'bg-primary-500/20 text-primary-400': $route.path.includes('/admin/integrations'),
+              }"
             >
               <div class="flex items-center space-x-3">
                 <UIcon name="heroicons:link" class="w-5 h-5" />
@@ -149,12 +151,7 @@
           <!-- Profile dropdown -->
           <UDropdown :items="profileItems" :popper="{ placement: 'bottom-end' }">
             <UButton variant="ghost" trailing-icon="heroicons:chevron-down">
-              <UAvatar
-                src=""
-                alt="Admin"
-                size="sm"
-                :ui="{ background: 'bg-primary-500' }"
-              >
+              <UAvatar src="" alt="Admin" size="sm" :ui="{ background: 'bg-primary-500' }">
                 <span class="text-white text-sm font-medium">A</span>
               </UAvatar>
               <span class="hidden sm:block ml-2">Admin</span>
@@ -176,19 +173,25 @@ const route = useRoute()
 const integrationsOpen = ref(true)
 
 const profileItems = [
-  [{
-    label: 'My Account',
-    icon: 'heroicons:user',
-    click: () => {}
-  }, {
-    label: 'Change Password',
-    icon: 'heroicons:key',
-    click: () => {}
-  }], [{
-    label: 'Logout',
-    icon: 'heroicons:arrow-right-on-rectangle',
-    click: () => navigateTo('/login')
-  }]
+  [
+    {
+      label: 'My Account',
+      icon: 'heroicons:user',
+      click: () => {},
+    },
+    {
+      label: 'Change Password',
+      icon: 'heroicons:key',
+      click: () => {},
+    },
+  ],
+  [
+    {
+      label: 'Logout',
+      icon: 'heroicons:arrow-right-on-rectangle',
+      click: () => navigateTo('/login'),
+    },
+  ],
 ]
 
 const pageTitle = computed(() => {
@@ -201,7 +204,7 @@ const pageTitle = computed(() => {
     'admin-integrations-teams': 'Teams Integration',
     'admin-integrations-slack': 'Slack Integration',
     'admin-integrations-whatsapp': 'WhatsApp Integration',
-    'admin-integrations-imessage': 'iMessage Integration'
+    'admin-integrations-imessage': 'iMessage Integration',
   }
   return titles[route.name as string] || 'Admin'
 })

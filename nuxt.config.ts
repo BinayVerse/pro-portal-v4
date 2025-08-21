@@ -12,7 +12,7 @@ export default defineNuxtConfig({
   ui: {
     global: true,
     icons: ['heroicons', 'simple-icons'],
-    safelistColors: ['primary', 'brand']
+    safelistColors: ['primary', 'brand'],
   },
 
   // Icon Configuration
