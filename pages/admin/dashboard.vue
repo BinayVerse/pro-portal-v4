@@ -431,22 +431,22 @@ const sortedDocuments = computed(() => {
   return docs
 })
 
-const getUserStatusClass = (status: string) => {
-  const classes: Record<string, string> = {
-    Active: 'bg-green-500/20 text-green-400',
-    Inactive: 'bg-red-500/20 text-red-400',
-    Pending: 'bg-yellow-500/20 text-yellow-400',
+const getStatusColor = (status: string) => {
+  const colors: Record<string, string> = {
+    Active: 'green',
+    Inactive: 'red',
+    Pending: 'yellow',
   }
-  return classes[status] || 'bg-gray-500/20 text-gray-400'
+  return colors[status] || 'gray'
 }
 
-const getDocumentStatusClass = (status: string) => {
-  const classes: Record<string, string> = {
-    processed: 'bg-green-500/20 text-green-400',
-    processing: 'bg-yellow-500/20 text-yellow-400',
-    failed: 'bg-red-500/20 text-red-400',
+const getDocumentStatusColor = (status: string) => {
+  const colors: Record<string, string> = {
+    processed: 'green',
+    processing: 'yellow',
+    failed: 'red',
   }
-  return classes[status] || 'bg-gray-500/20 text-gray-400'
+  return colors[status] || 'gray'
 }
 
 const getIntegrationIcon = (name: string) => {
