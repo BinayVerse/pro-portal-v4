@@ -120,22 +120,19 @@
           <h1 class="text-xl font-semibold text-white">{{ pageTitle }}</h1>
 
           <!-- Profile dropdown -->
-          <div class="relative" @mouseenter="profileOpen = true" @mouseleave="profileOpen = false">
-            <button class="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors">
-              <div class="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center">
+          <UDropdown :items="profileItems" :popper="{ placement: 'bottom-end' }">
+            <UButton variant="ghost" trailing-icon="heroicons:chevron-down">
+              <UAvatar
+                src=""
+                alt="Admin"
+                size="sm"
+                :ui="{ background: 'bg-primary-500' }"
+              >
                 <span class="text-white text-sm font-medium">A</span>
-              </div>
-              <span class="hidden sm:block">Admin</span>
-              <UIcon name="heroicons:chevron-down" class="w-4 h-4" />
-            </button>
-
-            <div v-show="profileOpen" class="absolute right-0 top-full mt-2 w-48 bg-dark-900 border border-dark-700 rounded-lg shadow-xl py-2 animate-fade-in">
-              <a href="#" class="block px-4 py-2 text-gray-300 hover:text-white hover:bg-dark-800 transition-colors">My Account</a>
-              <a href="#" class="block px-4 py-2 text-gray-300 hover:text-white hover:bg-dark-800 transition-colors">Change Password</a>
-              <hr class="border-dark-700 my-2">
-              <NuxtLink to="/login" class="block px-4 py-2 text-gray-300 hover:text-white hover:bg-dark-800 transition-colors">Logout</NuxtLink>
-            </div>
-          </div>
+              </UAvatar>
+              <span class="hidden sm:block ml-2">Admin</span>
+            </UButton>
+          </UDropdown>
         </div>
       </header>
 
