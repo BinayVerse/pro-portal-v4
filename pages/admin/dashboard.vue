@@ -152,34 +152,33 @@
               <div class="h-6 w-20 bg-gray-600 rounded"></div>
             </div>
           </div>
-          <div v-else class="space-y-4">
-            <div
-              v-for="doc in recentDocuments"
-              :key="doc.id"
-              class="flex items-center justify-between"
-            >
-              <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-primary-500/20 rounded flex items-center justify-center">
-                  <UIcon name="heroicons:document-text" class="w-5 h-5 text-primary-400" />
-                </div>
-                <div>
-                  <p class="text-white font-medium">{{ doc.title }}</p>
-                  <p class="text-gray-400 text-sm">
-                    {{ doc.fileName }} • {{ formatFileSize(doc.fileSize) }}
-                  </p>
-                </div>
+          <UTable
+            v-else
+            :rows="sortedDocuments"
+            :columns="documentColumns"
+            :sort="documentSort"
+            @update:sort="documentSort = $event"
+          >
+            <template #icon-data>
+              <div class="w-8 h-8 bg-primary-500/20 rounded flex items-center justify-center">
+                <UIcon name="heroicons:document-text" class="w-4 h-4 text-primary-400" />
               </div>
-              <div class="text-right">
-                <span
-                  :class="getDocumentStatusClass(doc.status)"
-                  class="px-2 py-1 text-xs rounded font-medium"
-                >
-                  {{ doc.status }}
-                </span>
-                <p class="text-gray-400 text-xs mt-1">{{ formatTime(doc.createdAt) }}</p>
+            </template>
+            <template #fileInfo-data="{ row }">
+              <div>
+                <p class="text-white font-medium text-sm">{{ row.title }}</p>
+                <p class="text-gray-400 text-xs">{{ row.fileName }} • {{ formatFileSize(row.fileSize) }}</p>
               </div>
-            </div>
-          </div>
+            </template>
+            <template #status-data="{ row }">
+              <UBadge :color="getDocumentStatusColor(row.status)" variant="soft" size="xs">
+                {{ row.status }}
+              </UBadge>
+            </template>
+            <template #createdAt-data="{ row }">
+              <span class="text-gray-400 text-xs">{{ formatTime(row.createdAt) }}</span>
+            </template>
+          </UTable>
         </div>
       </div>
     </div>
