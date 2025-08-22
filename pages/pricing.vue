@@ -31,9 +31,7 @@
 
             <ul class="space-y-3">
               <li v-for="feature in plan.features" :key="feature" class="flex items-start">
-                <svg class="w-5 h-5 text-primary-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                </svg>
+                <UIcon name="i-heroicons-check" class="w-5 h-5 text-primary-400 mt-0.5 mr-3 flex-shrink-0" />
                 <span class="text-gray-300">{{ feature }}</span>
               </li>
             </ul>
