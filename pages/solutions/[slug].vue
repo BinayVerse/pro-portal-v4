@@ -59,8 +59,6 @@
                   <span class="text-gray-300 text-sm">{{ point }}</span>
                 </div>
               </div>
-
-              <NuxtLink to="/book-meeting" class="btn-primary w-full mt-6"> Learn More → </NuxtLink>
             </div>
           </div>
 
