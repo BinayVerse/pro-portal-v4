@@ -34,10 +34,7 @@
                 <div
                   class="w-12 h-12 bg-primary-500/20 rounded-lg flex items-center justify-center"
                 >
-                  <UIcon
-                    :name="solution.icon"
-                    class="w-6 h-6 text-primary-400"
-                  />
+                  <UIcon :name="solution.icon" class="w-6 h-6 text-primary-400" />
                 </div>
                 <h1 class="text-2xl font-bold text-white">{{ solution.name }}</h1>
               </div>
@@ -63,10 +60,7 @@
                   <div
                     class="w-6 h-6 bg-primary-500 rounded-full flex items-center justify-center flex-shrink-0"
                   >
-                    <UIcon
-                      name="i-heroicons-check"
-                      class="w-4 h-4 text-white"
-                    />
+                    <UIcon name="i-heroicons-check" class="w-4 h-4 text-white" />
                   </div>
                   <span class="text-gray-300">{{ help }}</span>
                 </div>
@@ -87,10 +81,7 @@
               <div
                 class="w-12 h-12 bg-primary-500/20 rounded-lg flex items-center justify-center mb-4"
               >
-                <UIcon
-                  name="i-heroicons-document-text"
-                  class="w-6 h-6 text-primary-400"
-                />
+                <UIcon name="i-heroicons-document-text" class="w-6 h-6 text-primary-400" />
               </div>
               <h3 class="text-lg font-semibold text-white mb-3">{{ useCase.title }}</h3>
               <p class="text-gray-300 text-sm mb-4">{{ useCase.description }}</p>
@@ -146,10 +137,7 @@
                 <div
                   class="w-12 h-12 bg-primary-500/20 rounded-lg flex items-center justify-center flex-shrink-0"
                 >
-                  <UIcon
-                    :name="feature.icon"
-                    class="w-6 h-6 text-primary-400"
-                  />
+                  <UIcon :name="feature.icon" class="w-6 h-6 text-primary-400" />
                 </div>
                 <div>
                   <h3 class="text-lg font-semibold text-white mb-2">{{ feature.title }}</h3>
