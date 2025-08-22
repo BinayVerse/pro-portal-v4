@@ -133,7 +133,7 @@
                       />
                     </svg>
                   </div>
-                  <span class="text-gray-300">Word</span>
+                  <span class="text-gray-300">DOC</span>
                 </div>
                 <div class="flex items-center space-x-3">
                   <div class="w-8 h-8 bg-green-500/20 rounded flex items-center justify-center">
@@ -154,6 +154,16 @@
                     </svg>
                   </div>
                   <span class="text-gray-300">Markdown</span>
+                </div>
+                <div class="flex items-center space-x-3">
+                  <div class="w-8 h-8 bg-yellow-500/20 rounded flex items-center justify-center">
+                    <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
+                      <path
+                        d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"
+                      />
+                    </svg>
+                  </div>
+                  <span class="text-gray-300">TXT</span>
                 </div>
               </div>
             </div>
@@ -280,7 +290,7 @@
               </div>
               <h3 class="text-xl font-bold text-white mb-4">Mobile Integration</h3>
               <p class="text-gray-300 mb-6">
-                Access your documents on WhatsApp and iMessage for on-the-go insights and quick
+                Access your documents on WhatsApp for on-the-go insights and quick
                 document queries.
               </p>
             </div>
@@ -296,7 +306,7 @@
             Track usage patterns, monitor performance, and gain insights into how your team
             interacts with documents.
           </p>
-          <div class="grid md:grid-cols-4 gap-8">
+          <div class="grid md:grid-cols-2 gap-8 max-w-2xl mx-auto">
             <div class="text-center">
               <div
                 class="w-16 h-16 bg-primary-500/20 rounded-xl flex items-center justify-center mx-auto mb-4"
@@ -334,54 +344,12 @@
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="2"
-                    d="M13 10V3L4 14h7v7l9-11h-7z"
-                  />
-                </svg>
-              </div>
-              <h3 class="text-lg font-bold text-white mb-3">Performance Metrics</h3>
-              <p class="text-gray-300 text-sm">Monitor response times and system performance.</p>
-            </div>
-            <div class="text-center">
-              <div
-                class="w-16 h-16 bg-primary-500/20 rounded-xl flex items-center justify-center mx-auto mb-4"
-              >
-                <svg
-                  class="w-8 h-8 text-primary-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
                     d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"
                   />
                 </svg>
               </div>
               <h3 class="text-lg font-bold text-white mb-3">Trend Analysis</h3>
               <p class="text-gray-300 text-sm">Identify popular documents and query patterns.</p>
-            </div>
-            <div class="text-center">
-              <div
-                class="w-16 h-16 bg-primary-500/20 rounded-xl flex items-center justify-center mx-auto mb-4"
-              >
-                <svg
-                  class="w-8 h-8 text-primary-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-              </div>
-              <h3 class="text-lg font-bold text-white mb-3">Custom Reports</h3>
-              <p class="text-gray-300 text-sm">Generate detailed reports for stakeholders.</p>
             </div>
           </div>
         </div>
