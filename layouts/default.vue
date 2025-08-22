@@ -156,6 +156,22 @@
 const showSolutions = ref(false)
 const mobileMenuOpen = ref(false)
 
+let hoverTimeout: NodeJS.Timeout | null = null
+
+const handleSolutionsLeave = () => {
+  hoverTimeout = setTimeout(() => {
+    showSolutions.value = false
+  }, 300)
+}
+
+const handleSolutionsEnter = () => {
+  if (hoverTimeout) {
+    clearTimeout(hoverTimeout)
+    hoverTimeout = null
+  }
+  showSolutions.value = true
+}
+
 const industries = [
   { name: 'Education', slug: 'education' },
   { name: 'Finance & Banking', slug: 'finance-banking' },
