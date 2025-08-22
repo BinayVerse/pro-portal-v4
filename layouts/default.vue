@@ -34,8 +34,8 @@
             <!-- Solutions with dropdown -->
             <div
               class="relative"
-              @mouseenter="showSolutions = true"
-              @mouseleave="showSolutions = false"
+              @mouseenter="handleSolutionsEnter"
+              @mouseleave="handleSolutionsLeave"
             >
               <button
                 class="text-gray-300 hover:text-white transition-colors duration-200 flex items-center"
@@ -52,9 +52,9 @@
               <!-- Solutions dropdown -->
               <div
                 v-show="showSolutions"
-                class="absolute top-full left-0 mt-2 w-64 bg-dark-900 border border-dark-700 rounded-lg shadow-xl py-2 z-50"
-                @mouseenter="showSolutions = true"
-                @mouseleave="showSolutions = false"
+                class="absolute top-full left-0 mt-2 w-64 bg-dark-900 border border-dark-700 rounded-lg shadow-xl py-2 animate-fade-in z-50"
+                @mouseenter="handleSolutionsEnter"
+                @mouseleave="handleSolutionsLeave"
               >
                 <div class="px-4 py-2 text-sm text-gray-400 font-medium border-b border-dark-700">
                   By Industries
