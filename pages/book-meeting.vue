@@ -91,11 +91,7 @@
                 <label for="companySize" class="block text-sm font-medium text-gray-300 mb-2">
                   Company Size
                 </label>
-                <select
-                  id="companySize"
-                  v-model="form.companySize"
-                  class="input-field w-full"
-                >
+                <select id="companySize" v-model="form.companySize" class="input-field w-full">
                   <option value="">Select company size</option>
                   <option value="1-10">1-10 employees</option>
                   <option value="11-50">11-50 employees</option>
@@ -109,11 +105,7 @@
                 <label for="useCase" class="block text-sm font-medium text-gray-300 mb-2">
                   Primary Use Case
                 </label>
-                <select
-                  id="useCase"
-                  v-model="form.useCase"
-                  class="input-field w-full"
-                >
+                <select id="useCase" v-model="form.useCase" class="input-field w-full">
                   <option value="">Select use case</option>
                   <option value="legal">Legal document analysis</option>
                   <option value="hr">HR documentation</option>
@@ -143,7 +135,10 @@
                 class="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <span v-if="loading" class="flex items-center justify-center">
-                  <UIcon name="i-heroicons-arrow-path" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" />
+                  <UIcon
+                    name="i-heroicons-arrow-path"
+                    class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                  />
                   Booking Demo...
                 </span>
                 <span v-else>Book Demo</span>
@@ -158,7 +153,10 @@
               <h3 class="text-xl font-bold text-white mb-4">What to Expect</h3>
               <ul class="space-y-3">
                 <li v-for="item in demoExpectations" :key="item" class="flex items-start">
-                  <UIcon name="i-heroicons-check" class="w-5 h-5 text-primary-400 mt-0.5 mr-3 flex-shrink-0" />
+                  <UIcon
+                    name="i-heroicons-check"
+                    class="w-5 h-5 text-primary-400 mt-0.5 mr-3 flex-shrink-0"
+                  />
                   <span class="text-gray-300">{{ item }}</span>
                 </li>
               </ul>
@@ -181,7 +179,10 @@
                   <span class="text-gray-300">Custom document demo</span>
                 </div>
                 <div class="flex items-center">
-                  <UIcon name="i-heroicons-question-mark-circle" class="w-5 h-5 text-primary-400 mr-3" />
+                  <UIcon
+                    name="i-heroicons-question-mark-circle"
+                    class="w-5 h-5 text-primary-400 mr-3"
+                  />
                   <span class="text-gray-300">Q&A session</span>
                 </div>
               </div>
@@ -194,11 +195,17 @@
                 Have questions before booking? Our sales team is happy to help.
               </p>
               <div class="space-y-3">
-                <a href="mailto:sales@provento.ai" class="flex items-center text-primary-400 hover:text-primary-300 transition-colors">
+                <a
+                  href="mailto:sales@provento.ai"
+                  class="flex items-center text-primary-400 hover:text-primary-300 transition-colors"
+                >
                   <UIcon name="i-heroicons-envelope" class="w-5 h-5 mr-3" />
                   sales@provento.ai
                 </a>
-                <a href="tel:+1-555-0123" class="flex items-center text-primary-400 hover:text-primary-300 transition-colors">
+                <a
+                  href="tel:+1-555-0123"
+                  class="flex items-center text-primary-400 hover:text-primary-300 transition-colors"
+                >
                   <UIcon name="i-heroicons-phone" class="w-5 h-5 mr-3" />
                   +1 (555) 012-3456
                 </a>
@@ -213,7 +220,7 @@
 
 <script setup lang="ts">
 definePageMeta({
-  layout: 'main'
+  layout: 'main',
 })
 
 const { showNotification } = useNotification()
@@ -227,7 +234,7 @@ const form = ref({
   jobTitle: '',
   companySize: '',
   useCase: '',
-  message: ''
+  message: '',
 })
 
 const demoExpectations = [
@@ -235,21 +242,25 @@ const demoExpectations = [
   'Live document upload and questioning',
   'Integration walkthrough',
   'Pricing and plan discussion',
-  'Next steps and trial setup'
+  'Next steps and trial setup',
 ]
 
 const handleSubmit = async () => {
   loading.value = true
-  
+
   try {
     // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    showNotification('Demo request submitted successfully! We\'ll contact you within 24 hours to schedule your personalized demo.', 'success', {
-      title: 'Demo Requested',
-      duration: 8000
-    })
-    
+    await new Promise((resolve) => setTimeout(resolve, 2000))
+
+    showNotification(
+      "Demo request submitted successfully! We'll contact you within 24 hours to schedule your personalized demo.",
+      'success',
+      {
+        title: 'Demo Requested',
+        duration: 8000,
+      },
+    )
+
     // Reset form
     form.value = {
       firstName: '',
@@ -259,10 +270,13 @@ const handleSubmit = async () => {
       jobTitle: '',
       companySize: '',
       useCase: '',
-      message: ''
+      message: '',
     }
   } catch (error) {
-    showNotification('Failed to submit demo request. Please try again or contact us directly.', 'error')
+    showNotification(
+      'Failed to submit demo request. Please try again or contact us directly.',
+      'error',
+    )
   } finally {
     loading.value = false
   }
