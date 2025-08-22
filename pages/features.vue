@@ -252,11 +252,7 @@
               <div
                 class="w-16 h-16 bg-primary-500/20 rounded-xl flex items-center justify-center mx-auto mb-6"
               >
-                <svg class="w-8 h-8 text-primary-400" fill="currentColor" viewBox="0 0 24 24">
-                  <path
-                    d="M24 12a12 12 0 1 1-24 0 12 12 0 0 1 24 0zm-12-8.5a8.5 8.5 0 1 0 0 17 8.5 8.5 0 0 0 0-17zm2.6 5.4c-.4-.8-1-1.3-1.8-1.5-.8-.2-1.7-.1-2.5.3-.8.4-1.3 1-1.5 1.8-.2.8-.1 1.7.3 2.5l2.5 5.2c.2.4.6.6 1 .6s.8-.2 1-.6l2.5-5.2c.4-.8.5-1.7.3-2.5-.2-.8-.7-1.4-1.5-1.8-.2-.1-.4-.1-.3.2zm-1.6 2.1c0 .6-.4 1-1 1s-1-.4-1-1 .4-1 1-1 1 .4 1 1z"
-                  />
-                </svg>
+                <UIcon name="i-simple-icons-microsoftteams" class="w-8 h-8 text-primary-400" />
               </div>
               <h3 class="text-xl font-bold text-white mb-4">Teams Integration</h3>
               <p class="text-gray-300 mb-6">
