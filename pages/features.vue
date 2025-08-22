@@ -28,19 +28,7 @@
                   <div
                     class="w-6 h-6 bg-primary-500 rounded-full flex items-center justify-center flex-shrink-0"
                   >
-                    <svg
-                      class="w-4 h-4 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M5 13l4 4L19 7"
-                      ></path>
-                    </svg>
+                    <UIcon name="i-heroicons-check" class="w-4 h-4 text-white" />
                   </div>
                   <span class="text-gray-300">Natural language processing for complex queries</span>
                 </div>
@@ -48,19 +36,7 @@
                   <div
                     class="w-6 h-6 bg-primary-500 rounded-full flex items-center justify-center flex-shrink-0"
                   >
-                    <svg
-                      class="w-4 h-4 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M5 13l4 4L19 7"
-                      ></path>
-                    </svg>
+                    <UIcon name="i-heroicons-check" class="w-4 h-4 text-white" />
                   </div>
                   <span class="text-gray-300">Context-aware responses with source citations</span>
                 </div>
@@ -68,19 +44,7 @@
                   <div
                     class="w-6 h-6 bg-primary-500 rounded-full flex items-center justify-center flex-shrink-0"
                   >
-                    <svg
-                      class="w-4 h-4 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M5 13l4 4L19 7"
-                      ></path>
-                    </svg>
+                    <UIcon name="i-heroicons-check" class="w-4 h-4 text-white" />
                   </div>
                   <span class="text-gray-300">Multi-document knowledge synthesis</span>
                 </div>
@@ -117,51 +81,31 @@
               <div class="grid grid-cols-2 gap-4">
                 <div class="flex items-center space-x-3">
                   <div class="w-8 h-8 bg-red-500/20 rounded flex items-center justify-center">
-                    <svg class="w-4 h-4 text-red-400" fill="currentColor" viewBox="0 0 24 24">
-                      <path
-                        d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"
-                      />
-                    </svg>
+                    <UIcon name="i-heroicons-document-text" class="w-4 h-4 text-red-400" />
                   </div>
                   <span class="text-gray-300">PDF</span>
                 </div>
                 <div class="flex items-center space-x-3">
                   <div class="w-8 h-8 bg-blue-500/20 rounded flex items-center justify-center">
-                    <svg class="w-4 h-4 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
-                      <path
-                        d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"
-                      />
-                    </svg>
+                    <UIcon name="i-heroicons-document" class="w-4 h-4 text-blue-400" />
                   </div>
                   <span class="text-gray-300">DOC</span>
                 </div>
                 <div class="flex items-center space-x-3">
                   <div class="w-8 h-8 bg-green-500/20 rounded flex items-center justify-center">
-                    <svg class="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 24 24">
-                      <path
-                        d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"
-                      />
-                    </svg>
+                    <UIcon name="i-heroicons-table-cells" class="w-4 h-4 text-green-400" />
                   </div>
                   <span class="text-gray-300">CSV</span>
                 </div>
                 <div class="flex items-center space-x-3">
                   <div class="w-8 h-8 bg-purple-500/20 rounded flex items-center justify-center">
-                    <svg class="w-4 h-4 text-purple-400" fill="currentColor" viewBox="0 0 24 24">
-                      <path
-                        d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"
-                      />
-                    </svg>
+                    <UIcon name="i-heroicons-code-bracket" class="w-4 h-4 text-purple-400" />
                   </div>
                   <span class="text-gray-300">Markdown</span>
                 </div>
                 <div class="flex items-center space-x-3">
                   <div class="w-8 h-8 bg-yellow-500/20 rounded flex items-center justify-center">
-                    <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
-                      <path
-                        d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"
-                      />
-                    </svg>
+                    <UIcon name="i-heroicons-document-text" class="w-4 h-4 text-yellow-400" />
                   </div>
                   <span class="text-gray-300">TXT</span>
                 </div>
@@ -178,19 +122,7 @@
                   <div
                     class="w-6 h-6 bg-primary-500 rounded-full flex items-center justify-center flex-shrink-0"
                   >
-                    <svg
-                      class="w-4 h-4 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M5 13l4 4L19 7"
-                      ></path>
-                    </svg>
+                    <UIcon name="i-heroicons-check" class="w-4 h-4 text-white" />
                   </div>
                   <span class="text-gray-300">Manual file upload with drag & drop</span>
                 </div>
@@ -198,19 +130,7 @@
                   <div
                     class="w-6 h-6 bg-primary-500 rounded-full flex items-center justify-center flex-shrink-0"
                   >
-                    <svg
-                      class="w-4 h-4 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M5 13l4 4L19 7"
-                      ></path>
-                    </svg>
+                    <UIcon name="i-heroicons-check" class="w-4 h-4 text-white" />
                   </div>
                   <span class="text-gray-300">Google Drive integration</span>
                 </div>
@@ -218,19 +138,7 @@
                   <div
                     class="w-6 h-6 bg-primary-500 rounded-full flex items-center justify-center flex-shrink-0"
                   >
-                    <svg
-                      class="w-4 h-4 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M5 13l4 4L19 7"
-                      ></path>
-                    </svg>
+                    <UIcon name="i-heroicons-check" class="w-4 h-4 text-white" />
                   </div>
                   <span class="text-gray-300">Smart categorization and tagging</span>
                 </div>
@@ -246,11 +154,7 @@
               <div
                 class="w-16 h-16 bg-primary-500/20 rounded-xl flex items-center justify-center mx-auto mb-6"
               >
-                <svg class="w-8 h-8 text-primary-400" fill="currentColor" viewBox="0 0 24 24">
-                  <path
-                    d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"
-                  />
-                </svg>
+                <UIcon name="i-simple-icons-slack" class="w-8 h-8 text-primary-400" />
               </div>
               <h3 class="text-xl font-bold text-white mb-4">Slack Integration</h3>
               <p class="text-gray-300 mb-6">
@@ -274,19 +178,7 @@
               <div
                 class="w-16 h-16 bg-primary-500/20 rounded-xl flex items-center justify-center mx-auto mb-6"
               >
-                <svg
-                  class="w-8 h-8 text-primary-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"
-                  />
-                </svg>
+                <UIcon name="i-heroicons-device-phone-mobile" class="w-8 h-8 text-primary-400" />
               </div>
               <h3 class="text-xl font-bold text-white mb-4">Mobile Integration</h3>
               <p class="text-gray-300 mb-6">
@@ -310,19 +202,7 @@
               <div
                 class="w-16 h-16 bg-primary-500/20 rounded-xl flex items-center justify-center mx-auto mb-4"
               >
-                <svg
-                  class="w-8 h-8 text-primary-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                  />
-                </svg>
+                <UIcon name="i-heroicons-chart-bar" class="w-8 h-8 text-primary-400" />
               </div>
               <h3 class="text-lg font-bold text-white mb-3">Usage Analytics</h3>
               <p class="text-gray-300 text-sm">
@@ -333,19 +213,7 @@
               <div
                 class="w-16 h-16 bg-primary-500/20 rounded-xl flex items-center justify-center mx-auto mb-4"
               >
-                <svg
-                  class="w-8 h-8 text-primary-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"
-                  />
-                </svg>
+                <UIcon name="i-heroicons-chart-line" class="w-8 h-8 text-primary-400" />
               </div>
               <h3 class="text-lg font-bold text-white mb-3">Trend Analysis</h3>
               <p class="text-gray-300 text-sm">Identify popular documents and query patterns.</p>
