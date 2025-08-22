@@ -70,7 +70,10 @@
           class="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <span v-if="authStore.loading" class="flex items-center justify-center">
-            <UIcon name="i-heroicons-arrow-path" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" />
+            <UIcon
+              name="i-heroicons-arrow-path"
+              class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+            />
             Signing in...
           </span>
           <span v-else>Sign in</span>

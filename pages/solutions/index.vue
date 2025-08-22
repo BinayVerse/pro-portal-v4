@@ -53,10 +53,7 @@
             <div
               class="w-12 h-12 bg-primary-500/20 rounded-lg flex items-center justify-center mb-4"
             >
-              <UIcon
-                :name="industry.icon"
-                class="w-6 h-6 text-primary-400"
-              />
+              <UIcon :name="industry.icon" class="w-6 h-6 text-primary-400" />
             </div>
             <h3 class="text-xl font-semibold text-white mb-3">{{ industry.name }}</h3>
             <p class="text-gray-300 mb-6 flex-grow">{{ industry.description }}</p>
@@ -87,10 +84,7 @@
                 <div
                   class="w-12 h-12 bg-primary-500 rounded-full flex items-center justify-center flex-shrink-0"
                 >
-                  <UIcon
-                    name="i-heroicons-check"
-                    class="w-6 h-6 text-white"
-                  />
+                  <UIcon name="i-heroicons-check" class="w-6 h-6 text-white" />
                 </div>
                 <div>
                   <h3 class="text-xl font-semibold text-white mb-2">{{ benefit.title }}</h3>
