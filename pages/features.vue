@@ -290,8 +290,7 @@
               </div>
               <h3 class="text-xl font-bold text-white mb-4">Mobile Integration</h3>
               <p class="text-gray-300 mb-6">
-                Access your documents on WhatsApp for on-the-go insights and quick
-                document queries.
+                Access your documents on WhatsApp for on-the-go insights and quick document queries.
               </p>
             </div>
           </div>
