@@ -100,14 +100,13 @@
             </div>
             <h3 class="text-xl font-semibold text-white mb-4">Workplace Connectivity</h3>
             <p class="text-gray-300">
-              Integrate with Slack, Microsoft Teams, and WhatsApp for frictionless
-              collaboration and support.
+              Integrate with Slack, Microsoft Teams, and WhatsApp for frictionless collaboration and
+              support.
             </p>
           </div>
         </div>
       </div>
     </section>
-
 
     <!-- CTA Section -->
     <section
