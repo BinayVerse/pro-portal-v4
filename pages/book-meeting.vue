@@ -105,29 +105,11 @@
                   :ui="{ container: 'space-y-0', error: 'mt-2 text-red-400 text-sm' }"
                 >
                   <label class="block text-sm font-medium text-gray-300 mb-2">Phone Number</label>
-                  <VueTelInput
-                    v-model="phoneModel"
-                    mode="international"
-                    :default-country="defaultCountry"
-                    :auto-format="false"
-                    :searchable="true"
-                    :input-options="{
-                      placeholder: 'Enter your phone number',
-                      class: 'vue-tel-custom-input w-full !pl-16',
-                    }"
-                    :dropdown-options="{
-                      showDialCodeInSelection: true,
-                      showFlags: true,
-                      showSearchBox: true,
-                      searchBoxPlaceholder: 'Search countries...',
-                      showDialCodeInList: true,
-                      tabindex: 0,
-                    }"
-                    :search-options="{
-                      fetchCountries: true,
-                      highlightFirstItem: true,
-                    }"
-                    class="vue-tel-input-custom"
+                  <LibVueTelInput
+                    ref="phoneRef"
+                    :prop-phone="phoneModel"
+                    placeholder="Your phone number"
+                    class="my-4"
                   />
                   <p class="text-xs text-gray-400 mt-1">NB: We'll use this for scheduling calls</p>
                 </UFormField>
@@ -308,8 +290,6 @@
 
 <script setup lang="ts">
 import { useContactStore } from '~/stores/contact'
-import { VueTelInput } from 'vue3-tel-input'
-import 'vue3-tel-input/dist/vue3-tel-input.css'
 import { z } from 'zod'
 import type { FormSubmitEvent } from '#ui/types'
 
