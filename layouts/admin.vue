@@ -26,6 +26,8 @@
             icon="heroicons:squares-2x2"
             :color="$route.name === 'admin-dashboard' ? 'primary' : 'gray'"
             class="w-full"
+            :disabled="!isProfileComplete"
+            :title="!isProfileComplete ? 'Complete your profile to access this section' : null"
           >
             Dashboard
           </UButton>
@@ -37,6 +39,8 @@
             icon="heroicons:users"
             :color="$route.name === 'admin-users' ? 'primary' : 'gray'"
             class="w-full"
+            :disabled="!isProfileComplete"
+            :title="!isProfileComplete ? 'Complete your profile to access this section' : null"
           >
             Users
           </UButton>
@@ -48,6 +52,8 @@
             icon="heroicons:document-text"
             :color="$route.name === 'admin-artefacts' ? 'primary' : 'gray'"
             class="w-full"
+            :disabled="!isProfileComplete"
+            :title="!isProfileComplete ? 'Complete your profile to access this section' : null"
           >
             Artefacts
           </UButton>
@@ -59,6 +65,8 @@
             icon="heroicons:chart-bar"
             :color="$route.name === 'admin-analytics' ? 'primary' : 'gray'"
             class="w-full"
+            :disabled="!isProfileComplete"
+            :title="!isProfileComplete ? 'Complete your profile to access this section' : null"
           >
             Analytics
           </UButton>
@@ -70,7 +78,10 @@
               class="w-full flex items-center justify-between space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-dark-800 transition-colors duration-200"
               :class="{
                 'bg-primary-500/20 text-primary-400': $route.path.includes('/admin/integrations'),
+                'opacity-50 cursor-not-allowed pointer-events-none': !isProfileComplete,
               }"
+              :disabled="!isProfileComplete"
+              :title="!isProfileComplete ? 'Complete your profile to access this section' : null"
             >
               <div class="flex items-center space-x-3">
                 <UIcon name="heroicons:link" class="w-5 h-5" />
@@ -91,6 +102,8 @@
                 icon="heroicons:eye"
                 :color="$route.name === 'admin-integrations' ? 'primary' : 'gray'"
                 class="w-full"
+                :disabled="!isProfileComplete"
+                :title="!isProfileComplete ? 'Complete your profile to access this section' : null"
               >
                 Overview
               </UButton>
@@ -102,6 +115,8 @@
                 icon="i-mdi:slack"
                 :color="$route.name === 'admin-integrations-slack' ? 'primary' : 'gray'"
                 class="w-full"
+                :disabled="!isProfileComplete"
+                :title="!isProfileComplete ? 'Complete your profile to access this section' : null"
               >
                 Slack
               </UButton>
@@ -113,6 +128,8 @@
                 icon="i-mdi:microsoft-teams"
                 :color="$route.name === 'admin-integrations-teams' ? 'primary' : 'gray'"
                 class="w-full"
+                :disabled="!isProfileComplete"
+                :title="!isProfileComplete ? 'Complete your profile to access this section' : null"
               >
                 Teams
               </UButton>
@@ -124,6 +141,8 @@
                 icon="i-mdi:whatsapp"
                 :color="$route.name === 'admin-integrations-whatsapp' ? 'primary' : 'gray'"
                 class="w-full"
+                :disabled="!isProfileComplete"
+                :title="!isProfileComplete ? 'Complete your profile to access this section' : null"
               >
                 WhatsApp
               </UButton>
@@ -135,6 +154,8 @@
                 icon="i-heroicons:chat-bubble-left-ellipsis"
                 :color="$route.name === 'admin-integrations-i-message' ? 'primary' : 'gray'"
                 class="w-full"
+                :disabled="!isProfileComplete"
+                :title="!isProfileComplete ? 'Complete your profile to access this section' : null"
               >
                 iMessage
               </UButton>
@@ -158,6 +179,13 @@
         </div>
       </header>
 
+      <!-- Mandatory profile completion banner -->
+      <div v-if="!isProfileComplete && $route.path !== '/admin/profile'" class="px-6 pt-4">
+        <UAlert icon="i-heroicons-exclamation-triangle" color="yellow" variant="subtle" title="Please complete your profile to access the application.">
+          Please complete your profile to access the application.
+        </UAlert>
+      </div>
+
       <!-- Page content (scrollable) -->
       <main class="p-6 bg-black overflow-auto" style="height: calc(100vh - 4rem);">
         <slot />
@@ -179,6 +207,11 @@ const profileStore = useProfileStore()
 if (process.client) {
   void profileStore.fetchUserProfile().catch(() => {})
 }
+
+const isProfileComplete = computed(() => {
+  const up: any = profileStore.userProfile || {}
+  return !!(up && up.name && up.contact_number && up.company)
+})
 
 const getInitials = (name?: string, email?: string) => {
   if (!name && email) return (email[0] || '').toUpperCase()

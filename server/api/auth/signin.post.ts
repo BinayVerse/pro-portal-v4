@@ -84,7 +84,7 @@ export default defineEventHandler(async (event) => {
       status: 'success',
       token,
       user,
-      redirect: '/profile',
+      redirect: '/admin/dashboard',
     };
 
   } catch (error: unknown) {

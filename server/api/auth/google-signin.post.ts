@@ -92,13 +92,17 @@ export default defineEventHandler(async (event) => {
       { expiresIn: '1h' }
     );
 
+    const isComplete = !!(user.name && user.contact_number && user.org_id);
+    const redirect = isComplete ? '/admin/dashboard' : '/admin/profile?edit=1';
+    const message = isComplete ? 'Login successfully' : 'Please fill in all your details.';
+
     return {
       statusCode: newUser ? 201 : 200,
       status: 'success',
-      message: newUser ? 'Please fill in all your details.' : 'Login successfully',
+      message,
       token,
       user,
-      redirect: '/admin/profile',
+      redirect,
     };
   } catch (error: unknown) {
     const message =

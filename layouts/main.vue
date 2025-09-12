@@ -148,7 +148,7 @@
               >Book a Demo</NuxtLink
             >
             <template v-if="auth.isAuthenticated">
-              <NuxtLink to="/admin/dashboard" class="block text-gray-300 hover:text-white py-2">Dashboard</NuxtLink>
+              <NuxtLink v-if="isProfileComplete" to="/admin/dashboard" class="block text-gray-300 hover:text-white py-2">Dashboard</NuxtLink>
               <NuxtLink to="/change-password" class="block text-gray-300 hover:text-white py-2">Change Password</NuxtLink>
               <button @click="auth.signOut()" class="block text-gray-300 hover:text-white py-2 text-left w-full">Logout</button>
             </template>
@@ -160,6 +160,13 @@
         </div>
       </nav>
     </header>
+
+    <!-- Profile completion banner for logged in users -->
+    <div v-if="auth.isAuthenticated && !isProfileComplete && $route.path !== '/admin/profile'" class="px-4 sm:px-6 lg:px-8 mt-4">
+      <UAlert icon="i-heroicons-exclamation-triangle" color="yellow" variant="subtle" title="Please complete your profile to access the application.">
+        Please complete your profile to access the application.
+      </UAlert>
+    </div>
 
     <!-- Main content (scrollable area only) -->
     <main class="flex-1 overflow-auto flex flex-col" style="height: calc(100vh - 4rem);">
@@ -203,16 +210,23 @@ if (process.client) {
   }
 }
 
-const profileItems = [
-  [
-    { label: 'Dashboard', icon: 'heroicons:squares-2x2', click: () => navigateTo('/admin/dashboard') },
+const isProfileComplete = computed(() => {
+  const up: any = profileStore.userProfile || {}
+  return !!(up && up.name && up.contact_number && up.company)
+})
+
+const profileItems = computed(() => {
+  const base = [
     { label: 'My Account', icon: 'heroicons:user', click: () => navigateTo('/admin/profile') },
     { label: 'Change Password', icon: 'heroicons:key', click: () => navigateTo('/change-password') },
-  ],
-  [
-    { label: 'Logout', icon: 'heroicons:arrow-right-on-rectangle', click: async () => { await auth.signOut() } },
-  ],
-]
+  ]
+  const dashboard = { label: 'Dashboard', icon: 'heroicons:squares-2x2', click: () => navigateTo('/admin/dashboard') }
+  const logout = { label: 'Logout', icon: 'heroicons:arrow-right-on-rectangle', click: async () => { await auth.signOut() } }
+  const items: any[] = []
+  items.push(isProfileComplete.value ? [dashboard, ...base] : base)
+  items.push([logout])
+  return items
+})
 
 const industries = [
   { name: 'Education', slug: 'education' },

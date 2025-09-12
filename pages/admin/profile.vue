@@ -21,6 +21,17 @@
       </div>
     </template>
 
+    <UAlert
+      v-if="!isProfileComplete"
+      icon="i-heroicons-exclamation-triangle"
+      color="yellow"
+      variant="subtle"
+      class="mb-4"
+      title="Completing your profile is mandatory to access the application."
+    >
+      Completing your profile is mandatory to access the application.
+    </UAlert>
+
     <!-- View mode -->
     <div v-if="!isEditing" class="space-y-6">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -117,13 +128,14 @@ import { useNotification } from '~/composables/useNotification'
 import LibVueTelInput from '~/components/lib/VueTelInput/Index.vue'
 import { z } from 'zod'
 
-definePageMeta({ layout: 'admin' })
+definePageMeta({ layout: 'admin', middleware: 'auth' })
 
 const profileStore = useProfileStore()
 const { showError } = useNotification()
 const profile = computed(() => profileStore.userProfile || {})
 
 const isEditing = ref(false)
+const route = useRoute()
 const submitting = ref(false)
 const phoneRef = ref<any>(null)
 
@@ -131,12 +143,11 @@ const schema = z.object({
   name: z.string().min(3, 'Name must be at least 3 characters'),
   email: z.string().email('Please enter a valid email'),
   company: z.string().min(3, 'Company must be at least 3 characters'),
-  contact_number: z.string().min(1, 'Contact number is required'),
 })
 
 type Schema = z.output<typeof schema>
 
-const state = reactive<Partial<Schema & { user_id: any }>>({
+const state = reactive<Partial<Schema & { user_id?: string | number; contact_number?: string }>>({
   user_id: '',
   name: '',
   email: '',
@@ -204,10 +215,19 @@ const onSubmit = async () => {
   }
 }
 
+const isProfileComplete = computed(() => {
+  const up: any = profile.value || {}
+  return !!(up && up.name && up.contact_number && up.company)
+})
+
 onMounted(async () => {
   try {
     await profileStore.fetchUserProfile()
   } catch {}
+  const qEdit = route.query.edit === '1' || route.query.edit === 'true'
+  if (qEdit || !isProfileComplete.value) {
+    startEdit()
+  }
 })
 </script>
 
