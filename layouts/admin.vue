@@ -1,17 +1,19 @@
 <template>
   <div class="min-h-screen bg-black flex">
-    <!-- Sidebar -->
-    <aside class="w-64 bg-dark-900 border-r border-dark-700 flex flex-col">
+    <!-- Sidebar (fixed) -->
+    <aside class="fixed left-0 top-0 bottom-0 w-64 bg-dark-900 border-r border-dark-700 flex flex-col overflow-auto z-40">
       <!-- Logo -->
-      <div class="px-6 py-4 border-b border-dark-700">
-        <NuxtLink to="/" class="flex items-center space-x-3">
-          <img
-            src="https://cdn.builder.io/api/v1/image/assets%2Fb2a7382a9c9146babd538ccc60e9d0b5%2Fbddd43caf4614f99a3fbff498927abcc?format=webp&width=800"
-            alt="Provento Logo"
-            class="w-8 h-8"
-          />
-          <span class="text-white text-xl font-semibold">provento.ai</span>
-        </NuxtLink>
+      <div class="h-16 flex items-center border-b border-dark-700">
+        <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center">
+          <NuxtLink to="/" class="flex items-center space-x-3">
+            <img
+              src="https://cdn.builder.io/api/v1/image/assets%2Fb2a7382a9c9146babd538ccc60e9d0b5%2Fbddd43caf4614f99a3fbff498927abcc?format=webp&width=800"
+              alt="Provento Logo"
+              class="w-8 h-8"
+            />
+            <span class="text-white text-xl font-semibold">provento.ai</span>
+          </NuxtLink>
+        </div>
       </div>
 
       <!-- Admin Navigation -->
@@ -40,11 +42,11 @@
           </UButton>
 
           <UButton
-            to="/admin/documents"
+            to="/admin/artefacts"
             variant="ghost"
             justify="start"
             icon="heroicons:document-text"
-            :color="$route.name === 'admin-documents' ? 'primary' : 'gray'"
+            :color="$route.name === 'admin-artefacts' ? 'primary' : 'gray'"
             class="w-full"
           >
             Artefacts
@@ -86,6 +88,7 @@
                 variant="ghost"
                 justify="start"
                 size="sm"
+                icon="heroicons:eye"
                 :color="$route.name === 'admin-integrations' ? 'primary' : 'gray'"
                 class="w-full"
               >
@@ -96,7 +99,7 @@
                 variant="ghost"
                 justify="start"
                 size="sm"
-                icon="mdi:slack"
+                icon="i-mdi:slack"
                 :color="$route.name === 'admin-integrations-slack' ? 'primary' : 'gray'"
                 class="w-full"
               >
@@ -107,7 +110,7 @@
                 variant="ghost"
                 justify="start"
                 size="sm"
-                icon="mdi:microsoft-teams"
+                icon="i-mdi:microsoft-teams"
                 :color="$route.name === 'admin-integrations-teams' ? 'primary' : 'gray'"
                 class="w-full"
               >
@@ -118,19 +121,19 @@
                 variant="ghost"
                 justify="start"
                 size="sm"
-                icon="mdi:whatsapp"
+                icon="i-mdi:whatsapp"
                 :color="$route.name === 'admin-integrations-whatsapp' ? 'primary' : 'gray'"
                 class="w-full"
               >
                 WhatsApp
               </UButton>
               <UButton
-                to="/admin/integrations/imessage"
+                to="/admin/integrations/i-message"
                 variant="ghost"
                 justify="start"
                 size="sm"
-                icon="heroicons:device-phone-mobile"
-                :color="$route.name === 'admin-integrations-imessage' ? 'primary' : 'gray'"
+                icon="i-heroicons:chat-bubble-left-ellipsis"
+                :color="$route.name === 'admin-integrations-i-message' ? 'primary' : 'gray'"
                 class="w-full"
               >
                 iMessage
@@ -141,27 +144,22 @@
       </nav>
     </aside>
 
-    <!-- Main content area -->
-    <div class="flex-1 flex flex-col">
-      <!-- Top header -->
-      <header class="bg-dark-900 border-b border-dark-700 px-6 py-4">
-        <div class="flex items-center justify-between">
-          <h1 class="text-xl font-semibold text-white">{{ pageTitle }}</h1>
-
-          <!-- Profile dropdown -->
+    <!-- Main content area (offset for fixed sidebar) -->
+    <div class="ml-64 flex-1 flex flex-col" style="min-height:100vh;">
+      <!-- Top header (fixed height) -->
+      <header class="bg-dark-900 border-b border-dark-700 px-6 h-16 flex items-center z-50">
+        <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-end w-full">
           <UDropdown :items="profileItems" :popper="{ placement: 'bottom-end' }">
             <UButton variant="ghost" trailing-icon="heroicons:chevron-down">
-              <UAvatar src="" alt="Admin" size="sm" :ui="{ background: 'bg-primary-500' }">
-                <span class="text-white text-sm font-medium">A</span>
-              </UAvatar>
-              <span class="hidden sm:block ml-2">Admin</span>
+              <UAvatar src="" :alt="profileStore.userProfile?.name?.toUpperCase()" size="sm" :ui="{ background: 'bg-primary-500' }" />
+              <span class="hidden sm:block ml-2">{{ profileStore.userProfile?.name || profileStore.userProfile?.email || 'User' }}</span>
             </UButton>
           </UDropdown>
         </div>
       </header>
 
-      <!-- Page content -->
-      <main class="flex-1 p-6 bg-black">
+      <!-- Page content (scrollable) -->
+      <main class="p-6 bg-black overflow-auto" style="height: calc(100vh - 4rem);">
         <slot />
       </main>
     </div>
@@ -169,27 +167,53 @@
 </template>
 
 <script setup lang="ts">
+import { useAuthStore } from '~/stores/auth/index'
+import { useProfileStore } from '~/stores/profile/index'
+
 const route = useRoute()
 const integrationsOpen = ref(true)
+const auth = useAuthStore()
+const profileStore = useProfileStore()
+
+// Ensure profile is loaded
+if (process.client) {
+  void profileStore.fetchUserProfile().catch(() => {})
+}
+
+const getInitials = (name?: string, email?: string) => {
+  if (!name && email) return (email[0] || '').toUpperCase()
+  if (!name) return ''
+  const parts = name.trim().split(/\s+/)
+  if (parts.length === 1) return parts[0][0].toUpperCase()
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+}
 
 const profileItems = [
   [
     {
       label: 'My Account',
       icon: 'heroicons:user',
-      click: () => {},
+      click: () => navigateTo('/admin/profile'),
     },
     {
       label: 'Change Password',
       icon: 'heroicons:key',
-      click: () => {},
+      click: () => navigateTo('/change-password'),
     },
   ],
   [
     {
       label: 'Logout',
       icon: 'heroicons:arrow-right-on-rectangle',
-      click: () => navigateTo('/login'),
+      click: async () => {
+        try {
+          await auth.signOut()
+        } catch (e) {
+          console.error('Logout failed from profile dropdown', e)
+          // Fallback navigation
+          navigateTo('/login')
+        }
+      },
     },
   ],
 ]
@@ -198,13 +222,13 @@ const pageTitle = computed(() => {
   const titles: Record<string, string> = {
     'admin-dashboard': 'Dashboard',
     'admin-users': 'Users',
-    'admin-documents': 'Documents',
+    'admin-artefacts': 'Artefacts',
     'admin-analytics': 'Analytics',
     'admin-integrations': 'Integrations Overview',
     'admin-integrations-teams': 'Teams Integration',
     'admin-integrations-slack': 'Slack Integration',
     'admin-integrations-whatsapp': 'WhatsApp Integration',
-    'admin-integrations-imessage': 'iMessage Integration',
+    'admin-integrations-i-message': 'iMessage Integration',
   }
   return titles[route.name as string] || 'Admin'
 })

@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM node:22-alpine AS builder
+FROM node:22-bullseye-slim AS builder
 
 WORKDIR /app
 
@@ -12,7 +12,7 @@ COPY . .
 RUN npm run build
 
 # Stage 2: Run
-FROM node:22-alpine
+FROM node:22-bullseye-slim
 
 WORKDIR /app
 
@@ -23,11 +23,11 @@ COPY --from=builder /app/package*.json ./
 # Install only production deps
 RUN npm install --omit=dev --legacy-peer-deps
 
-ENV NUXT_PUBLIC_APP_URL=http://localhost:3000
+ENV NUXT_PUBLIC_APP_URL=http://localhost:80
 ENV HOST=0.0.0.0
-ENV PORT=3000
+ENV PORT=80
 
-EXPOSE 3000
+EXPOSE 80
 
 # Nuxt 3 correct entrypoint
 CMD ["node", ".output/server/index.mjs"]

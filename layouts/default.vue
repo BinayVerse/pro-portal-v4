@@ -1,8 +1,8 @@
 <template>
-  <div class="min-h-screen bg-black">
-    <!-- Header Navigation -->
-    <header class="bg-black border-b border-dark-700 sticky top-0 z-50">
-      <nav class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
+  <div class="min-h-screen bg-black h-screen flex flex-col">
+    <!-- Header Navigation (fixed height) -->
+    <header class="bg-black border-b border-dark-700 h-16">
+      <nav class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 h-16">
         <div class="flex justify-between items-center h-16">
           <!-- Logo and brand -->
           <NuxtLink to="/" class="flex items-center space-x-3">
@@ -62,7 +62,7 @@
                 <NuxtLink
                   v-for="industry in industries"
                   :key="industry.slug"
-                  :to="`/solutions/${industry.slug}`"
+                  :to="industry.slug ? `/solutions/${industry.slug}` : '/solutions'"
                   class="block px-4 py-2 text-gray-300 hover:text-white hover:bg-dark-800 transition-colors duration-200"
                 >
                   {{ industry.name }}
@@ -91,13 +91,31 @@
             <NuxtLink to="/book-meeting" class="btn-outline hidden sm:inline-flex">
               Book a Demo
             </NuxtLink>
-            <NuxtLink
-              to="/login"
-              class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
-            >
-              Login
-            </NuxtLink>
-            <NuxtLink to="/signup" class="btn-primary"> Sign Up </NuxtLink>
+
+            <template v-if="auth.isAuthenticated">
+              <UDropdown :items="profileItems" :popper="{ placement: 'bottom-end' }">
+                <UButton variant="ghost" trailing-icon="heroicons:chevron-down">
+                  <UAvatar
+                    src=""
+                    :alt="profileStore.userProfile?.name?.toUpperCase()"
+                    size="sm"
+                    :ui="{ background: 'bg-primary-500' }"
+                  />
+                  <span class="hidden sm:block ml-2">
+                    {{ profileStore.userProfile?.name || profileStore.userProfile?.email || 'User' }}
+                  </span>
+                </UButton>
+              </UDropdown>
+            </template>
+            <template v-else>
+              <NuxtLink
+                to="/login"
+                class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
+              >
+                Login
+              </NuxtLink>
+              <NuxtLink to="/signup" class="btn-primary"> Sign Up </NuxtLink>
+            </template>
           </div>
 
           <!-- Mobile menu button -->
@@ -129,20 +147,27 @@
             <NuxtLink to="/book-meeting" class="block text-gray-300 hover:text-white py-2"
               >Book a Demo</NuxtLink
             >
-            <NuxtLink to="/login" class="block text-gray-300 hover:text-white py-2">Login</NuxtLink>
-            <NuxtLink to="/signup" class="btn-primary block text-center mt-3">Sign Up</NuxtLink>
+            <template v-if="auth.isAuthenticated">
+              <NuxtLink to="/admin/dashboard" class="block text-gray-300 hover:text-white py-2">Dashboard</NuxtLink>
+              <NuxtLink to="/change-password" class="block text-gray-300 hover:text-white py-2">Change Password</NuxtLink>
+              <button @click="auth.signOut()" class="block text-gray-300 hover:text-white py-2 text-left w-full">Logout</button>
+            </template>
+            <template v-else>
+              <NuxtLink to="/login" class="block text-gray-300 hover:text-white py-2">Login</NuxtLink>
+              <NuxtLink to="/signup" class="btn-primary block text-center mt-3">Sign Up</NuxtLink>
+            </template>
           </div>
         </div>
       </nav>
     </header>
 
-    <!-- Main content -->
-    <main>
-      <slot />
+    <!-- Main content (scrollable area only) -->
+    <main class="flex-1 overflow-auto flex flex-col" style="height: calc(100vh - 4rem);">
+      <div class="flex-1">
+        <slot />
+      </div>
+      <FooterComponent />
     </main>
-
-    <!-- Footer -->
-    <FooterComponent />
   </div>
 </template>
 
@@ -166,7 +191,31 @@ const handleSolutionsEnter = () => {
   showSolutions.value = true
 }
 
-const industries = [
+// Auth and profile stores
+import { useAuthStore } from '~/stores/auth/index'
+import { useProfileStore } from '~/stores/profile/index'
+const auth = useAuthStore()
+const profileStore = useProfileStore()
+
+if (process.client) {
+  if (auth.isAuthenticated) {
+    void profileStore.fetchUserProfile().catch(() => {})
+  }
+}
+
+const profileItems = [
+  [
+    { label: 'Dashboard', icon: 'heroicons:squares-2x2', click: () => navigateTo('/admin/dashboard') },
+    { label: 'My Account', icon: 'heroicons:user', click: () => navigateTo('/admin/profile') },
+    { label: 'Change Password', icon: 'heroicons:key', click: () => navigateTo('/change-password') },
+  ],
+  [
+    { label: 'Logout', icon: 'heroicons:arrow-right-on-rectangle', click: async () => { await auth.signOut() } },
+  ],
+]
+
+// Reactive industries array with proper validation
+const industries = ref([
   { name: 'Education', slug: 'education' },
   { name: 'Finance & Banking', slug: 'finance-banking' },
   { name: 'Government', slug: 'government' },
@@ -175,5 +224,5 @@ const industries = [
   { name: 'Legal', slug: 'legal' },
   { name: 'Manufacturing', slug: 'manufacturing' },
   { name: 'Real Estate', slug: 'real-estate' },
-]
+].filter(industry => industry.slug && industry.name))
 </script>

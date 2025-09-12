@@ -12,6 +12,8 @@ export interface PricingPlan {
   createdAt: string
 }
 
+import { handleError } from '../utils/apiHandler'
+
 export const usePricingStore = defineStore('pricing', () => {
   const plans = ref<PricingPlan[]>([])
   const isLoading = ref(false)
@@ -22,18 +24,37 @@ export const usePricingStore = defineStore('pricing', () => {
     error.value = null
 
     try {
-      const data = await $fetch<{ success: boolean; data?: PricingPlan[]; error?: string }>(
-        '/api/plans',
-      )
+      const response = await fetch('/api/plans')
 
-      if (data.success && data.data) {
+      let data: { success: boolean; data?: PricingPlan[]; error?: string }
+
+      try {
+        const responseText = await response.text()
+
+        if (!responseText) {
+          data = { success: false, error: 'Empty response from server' }
+        } else {
+          try {
+            data = JSON.parse(responseText)
+          } catch (parseError) {
+            data = { success: false, error: responseText }
+          }
+        }
+      } catch (textError) {
+        data = { success: false, error: 'Failed to read response from server' }
+      }
+
+      if (response.ok && data.success && data.data) {
         plans.value = data.data
         return { success: true }
       } else {
-        throw new Error(data.error || 'Failed to fetch pricing plans')
+        const msg = data.error || 'Failed to fetch pricing plans'
+        handleError({ response: { _data: { message: msg } } }, msg)
+        throw new Error(msg)
       }
     } catch (err: any) {
-      error.value = err?.data?.error || err.message || 'Failed to fetch pricing plans'
+      const msg = handleError(err, 'Failed to fetch pricing plans')
+      error.value = msg
       return { success: false, error: error.value }
     } finally {
       isLoading.value = false

@@ -96,7 +96,7 @@ export const sendWelcomeMail = async (name: string, email: string, password: str
     };
 
     await sgMail.send(msg);
-    console.log('Signup email sent successfully');
+    // console.log('Signup email sent successfully');
   } catch (error: any) {
     console.error('Error sending signup email:', error.response?.body || error.message);
     throw new Error(`Failed to send signup email: ${error.response?.body?.errors[0]?.message || error.message}`);
@@ -355,7 +355,7 @@ export const sendUserAdditionMail = async (name: string, email: string, qrCode: 
     };
 
     await sgMail.send(msg);
-    console.log('User addition email sent successfully');
+    // console.log('User addition email sent successfully');
   } catch (error: any) {
     console.error('Error sending User addition email:', error.response?.body || error.message);
     throw new Error(
@@ -464,7 +464,7 @@ export const sendMeetingRequestMail = async ({
     };
 
     await sgMail.send(msg);
-    console.log('Book meeting request email sent successfully');
+    // console.log('Book meeting request email sent successfully');
   } catch (error: any) {
     console.error('Error sending meeting request email:', error.response?.body || error.message);
     throw new Error(`Failed to send meeting request email: ${error.response?.body?.errors?.[0]?.message || error.message}`);
