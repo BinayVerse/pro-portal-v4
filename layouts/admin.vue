@@ -27,7 +27,7 @@
             :color="$route.name === 'admin-dashboard' ? 'primary' : 'gray'"
             class="w-full"
             :disabled="!isProfileComplete"
-            :title="!isProfileComplete ? 'Complete your profile to access this section' : null"
+            :title="isClient && !isProfileComplete ? 'Complete your profile to access this section' : null"
           >
             Dashboard
           </UButton>
@@ -40,7 +40,7 @@
             :color="$route.name === 'admin-users' ? 'primary' : 'gray'"
             class="w-full"
             :disabled="!isProfileComplete"
-            :title="!isProfileComplete ? 'Complete your profile to access this section' : null"
+            :title="isClient && !isProfileComplete ? 'Complete your profile to access this section' : null"
           >
             Users
           </UButton>
@@ -53,7 +53,7 @@
             :color="$route.name === 'admin-artefacts' ? 'primary' : 'gray'"
             class="w-full"
             :disabled="!isProfileComplete"
-            :title="!isProfileComplete ? 'Complete your profile to access this section' : null"
+            :title="isClient && !isProfileComplete ? 'Complete your profile to access this section' : null"
           >
             Artefacts
           </UButton>
@@ -66,7 +66,7 @@
             :color="$route.name === 'admin-analytics' ? 'primary' : 'gray'"
             class="w-full"
             :disabled="!isProfileComplete"
-            :title="!isProfileComplete ? 'Complete your profile to access this section' : null"
+            :title="isClient && !isProfileComplete ? 'Complete your profile to access this section' : null"
           >
             Analytics
           </UButton>
@@ -81,7 +81,7 @@
                 'opacity-50 cursor-not-allowed pointer-events-none': !isProfileComplete,
               }"
               :disabled="!isProfileComplete"
-              :title="!isProfileComplete ? 'Complete your profile to access this section' : null"
+              :title="isClient && !isProfileComplete ? 'Complete your profile to access this section' : null"
             >
               <div class="flex items-center space-x-3">
                 <UIcon name="heroicons:link" class="w-5 h-5" />
@@ -103,7 +103,7 @@
                 :color="$route.name === 'admin-integrations' ? 'primary' : 'gray'"
                 class="w-full"
                 :disabled="!isProfileComplete"
-                :title="!isProfileComplete ? 'Complete your profile to access this section' : null"
+                :title="isClient && !isProfileComplete ? 'Complete your profile to access this section' : null"
               >
                 Overview
               </UButton>
@@ -116,7 +116,7 @@
                 :color="$route.name === 'admin-integrations-slack' ? 'primary' : 'gray'"
                 class="w-full"
                 :disabled="!isProfileComplete"
-                :title="!isProfileComplete ? 'Complete your profile to access this section' : null"
+                :title="isClient && !isProfileComplete ? 'Complete your profile to access this section' : null"
               >
                 Slack
               </UButton>
@@ -129,7 +129,7 @@
                 :color="$route.name === 'admin-integrations-teams' ? 'primary' : 'gray'"
                 class="w-full"
                 :disabled="!isProfileComplete"
-                :title="!isProfileComplete ? 'Complete your profile to access this section' : null"
+                :title="isClient && !isProfileComplete ? 'Complete your profile to access this section' : null"
               >
                 Teams
               </UButton>
@@ -142,7 +142,7 @@
                 :color="$route.name === 'admin-integrations-whatsapp' ? 'primary' : 'gray'"
                 class="w-full"
                 :disabled="!isProfileComplete"
-                :title="!isProfileComplete ? 'Complete your profile to access this section' : null"
+                :title="isClient && !isProfileComplete ? 'Complete your profile to access this section' : null"
               >
                 WhatsApp
               </UButton>
@@ -155,7 +155,7 @@
                 :color="$route.name === 'admin-integrations-i-message' ? 'primary' : 'gray'"
                 class="w-full"
                 :disabled="!isProfileComplete"
-                :title="!isProfileComplete ? 'Complete your profile to access this section' : null"
+                :title="isClient && !isProfileComplete ? 'Complete your profile to access this section' : null"
               >
                 iMessage
               </UButton>
@@ -195,11 +195,14 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '~/stores/auth/index'
 import { useProfileStore } from '~/stores/profile/index'
 
 const route = useRoute()
 const integrationsOpen = ref(true)
+const isClient = ref(false)
+onMounted(() => { isClient.value = true })
 const auth = useAuthStore()
 const profileStore = useProfileStore()
 
