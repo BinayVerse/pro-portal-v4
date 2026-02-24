@@ -13,17 +13,20 @@ export default defineEventHandler(async (event) => {
     }
 
     let decoded: any;
+    let userId: string | undefined;
     try {
         decoded = jwt.verify(token, config.jwtToken as string);
+        userId = (decoded as any).user_id
     } catch {
         throw new CustomError('Unauthorized: Invalid token', 401);
     }
 
-    if (decoded.org_id !== org_id && !decoded.isAdmin) {
-        console.log("decoded:", decoded);
-        console.log("org_id::", org_id);
-        console.log("decoded.org_id:", decoded.org_id);
-        throw new CustomError("Forbidden: You don't have access to this organization", 403);
+    const roleRes = await query(`SELECT role_id FROM users WHERE user_id = $1 LIMIT 1`, [userId]);
+    const callerRole = Number.isFinite(Number(roleRes?.rows?.[0]?.role_id)) ? Number(roleRes.rows[0].role_id) : null
+    if (callerRole !== 0) {
+        if (decoded.org_id !== org_id) {
+            throw new CustomError("Forbidden: You don't have access to this organization", 403);
+        }
     }
 
     const { startDate, endDate, timezone } = getQuery(event);
@@ -95,7 +98,7 @@ export default defineEventHandler(async (event) => {
             },
         };
     } catch (error) {
-        console.error(error);
+        if (process.dev) console.error(error);
         throw new CustomError(
             'Internal Server Error: Failed to fetch token usage data',
             500

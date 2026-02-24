@@ -11,7 +11,8 @@ const pool = new Pool({
   user: config.dbUser,
   password: config.dbPassword,
   // Pool configuration for better concurrency handling
-  max: 20,
+  // Increased max to better handle bursts; tune as needed for your environment
+  max: 50,
   min: 2,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 10000,
@@ -74,29 +75,29 @@ async function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export async function query(text: string, params: any, opts?: { retries?: number; backoffMs?: number }) {
-  const retries = Math.max(0, opts?.retries ?? 1); // retry once by default for transient errors
-  const backoffMs = Math.max(0, opts?.backoffMs ?? 150);
+export async function query(text: string, params: any[] = [], opts?: { retries?: number; backoffMs?: number }) {
+  // Use pool.query for simpler lifecycle; keep retries/backoff for transient errors
+  const retries = Math.max(0, opts?.retries ?? 3);
+  const backoffMs = Math.max(0, opts?.backoffMs ?? 250);
 
   let attempt = 0;
   // eslint-disable-next-line no-constant-condition
   while (true) {
-    let client: any;
     try {
-      client = await pool.connect();
-      const result = await client.query(text, params);
+      const result = await pool.query(text, params);
       return result;
     } catch (error: any) {
       if (attempt < retries && isTransientError(error)) {
         attempt += 1;
         // eslint-disable-next-line no-console
         console.warn(`[db] Transient error on attempt ${attempt}, retrying in ${backoffMs}ms:`, error?.message || error);
-        try {
-          if (client) client.release();
-        } catch {}
         await delay(backoffMs);
-        continue; // retry
+        continue;
       }
+
+      // Log the original DB error for debugging
+      // eslint-disable-next-line no-console
+      console.error('[db] Query error:', { message: error?.message, code: error?.code, stack: error?.stack })
 
       if (error?.code === "ECONNREFUSED") {
         throw new Error("Database connection refused - check if database is running");
@@ -107,14 +108,9 @@ export async function query(text: string, params: any, opts?: { retries?: number
       } else if (error?.code === "3D000") {
         throw new Error("Database does not exist - check database name");
       } else {
-        throw new Error("Database query failed");
+        // Propagate original message when available to aid debugging
+        throw new Error(error?.message || "Database query failed");
       }
-    } finally {
-      try {
-        if (client) {
-          client.release();
-        }
-      } catch {}
     }
   }
 }

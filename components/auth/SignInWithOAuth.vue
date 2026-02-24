@@ -21,8 +21,12 @@ const handleGoogleResponse = async (response: GoogleResponse) => {
 
       if (result.status === 'success') {
         showNotification(result.message || 'Sign-in successful!', 'success')
-        // use redirect returned by store
-        window.location.href = result.redirect || '/admin/profile'
+        const user = authStore.user as any
+        if (user?.role_id === 0) {
+          window.location.href = '/admin/superadmin'
+        } else {
+          window.location.href = result.redirect || '/admin/profile'
+        }
       } else {
         showNotification(result.message || 'Sign-in failed.', 'error')
       }
@@ -138,7 +142,7 @@ onMounted(() => {
       </svg>
     </div>
     <h1 class="px-4 py-3 text-gray-600 font-bold">
-      {{ props.authView === 'signin' ? 'Sign In With Google' : 'Sign Up With Google' }}
+      {{ props.authView === 'signin' ? 'Sign In With Google' : 'Sign In With Google' }}
     </h1>
   </a>
 </template>

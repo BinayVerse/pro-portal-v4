@@ -9,8 +9,6 @@ export async function handleAuthError(err: any): Promise<boolean> {
 
   if (is401) {
     try {
-      // eslint-disable-next-line no-console
-      console.log('401 Unauthorized detected, clearing auth and redirecting to login...')
     } catch {}
 
     // Clear client-side storage if running on client

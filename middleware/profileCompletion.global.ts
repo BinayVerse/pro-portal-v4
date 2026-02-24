@@ -1,3 +1,5 @@
+import { useAuthStore } from '~/stores/auth/index'
+import { useProfileStore } from '~/stores/profile/index'
 export default defineNuxtRouteMiddleware(async (to, from) => {
   const allowed = ['/login', '/signup', '/admin/profile', '/logout', '/book-meeting']
   const authStore = useAuthStore()
@@ -6,6 +8,9 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   await authStore.initializeAuth()
 
   if (!authStore.isLoggedIn) return
+
+  // Super admins do not need to complete organization profile
+  if (authStore.user?.role_id === 0) return
 
   try {
     await profileStore.fetchUserProfile()

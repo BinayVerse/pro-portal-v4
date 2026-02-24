@@ -13,18 +13,23 @@ export default defineEventHandler(async (event) => {
     throw new CustomError('Unauthorized: No token provided', 401)
   }
 
-  let orgId
+  // Determine caller role/org and allow superadmin to change status across orgs
+  let callerUserId: any
   try {
-    const decodedToken = jwt.verify(token, config.jwtToken as string)
-    orgId = (decodedToken as { org_id: number }).org_id
-    if (!orgId) {
-      setResponseStatus(event, 401)
-      throw new CustomError('Unauthorized: Invalid org_id', 401)
-    }
+    const decodedToken = jwt.verify(token, config.jwtToken as string) as { user_id: number }
+    callerUserId = decodedToken.user_id
   } catch (err) {
     setResponseStatus(event, 401)
     throw new CustomError('Unauthorized: Invalid token', 401)
   }
+
+  const callerRow = await query('SELECT org_id, role_id FROM users WHERE user_id = $1', [callerUserId])
+  if (!callerRow?.rows?.length) {
+    setResponseStatus(event, 404)
+    throw new CustomError('Caller not found', 404)
+  }
+  const callerOrg = callerRow.rows[0].org_id
+  const callerRole = callerRow.rows[0].role_id
 
   if (!userId) {
     setResponseStatus(event, 400)
@@ -39,14 +44,27 @@ export default defineEventHandler(async (event) => {
   const isActive = params.is_active === true || params.is_active === 'true'
 
   try {
+    // Fetch target user's org
+    const targetRow = await query('SELECT org_id FROM users WHERE user_id = $1', [userId])
+    if (!targetRow?.rows?.length) {
+      setResponseStatus(event, 404)
+      throw new CustomError('User not found', 404)
+    }
+    const targetOrg = targetRow.rows[0].org_id
+
+    if (callerRole !== 0 && String(callerOrg) !== String(targetOrg)) {
+      setResponseStatus(event, 403)
+      throw new CustomError('Forbidden: Cannot modify users from another organization', 403)
+    }
+
     const updateQuery = `
       UPDATE users
-      SET is_active = $1, updated_at = CURRENT_TIMESTAMP
-      WHERE user_id = $2 AND org_id = $3
+      SET is_active = $1, updated_at = CURRENT_TIMESTAMP, updated_by = $3
+      WHERE user_id = $2
       RETURNING user_id, is_active
     `
 
-    const result = await query(updateQuery, [isActive, userId, orgId])
+    const result = await query(updateQuery, [isActive, userId, callerUserId])
 
     if (result.rowCount === 0) {
       setResponseStatus(event, 404)

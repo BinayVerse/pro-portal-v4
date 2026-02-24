@@ -20,6 +20,9 @@ export const useAnalyticsStore = defineStore('analyticsStore', {
     userAppWiseTokenDetail: [] as AppTokenUsage[],
     activeUsersCount: 0,
     totalQueriesCount: 0,
+    departmentBarChartData: [],
+    departmentPieChartData: [],
+    departmentAnalyticsLoading: false,
   }),
 
   getters: {
@@ -31,7 +34,62 @@ export const useAnalyticsStore = defineStore('analyticsStore', {
     getOrganizationDetails: (state): any | null => state.organizationDetails,
     getOrganizationUsers: (state): any[] => state.orgUserList,
     getUserAppWiseTokenDetail: (state): AppTokenUsage[] => state.userAppWiseTokenDetail,
+    
+  // For Bar Chart: Users vs Artifacts by Department - HORIZONTAL layout
+  // X-axis: Count, Y-axis: Departments
+  getDepartmentBarChartData: (state): any => {    
+    if (!state.departmentBarChartData || state.departmentBarChartData.length === 0) {
+      return {
+        departments: [],
+        userCounts: [],
+        artifactCounts: []
+      };
+    }
+    
+    // Sort departments by total count (users + artifacts) descending
+    const sortedData = [...state.departmentBarChartData].sort((a, b) => {
+      const aTotal = (Number(a.user_count) || 0) + (Number(a.artifact_count) || 0);
+      const bTotal = (Number(b.user_count) || 0) + (Number(b.artifact_count) || 0);
+      return bTotal - aTotal;
+    });
+    
+    const departments = sortedData.map(d => d.department_name);
+    const userCounts = sortedData.map(d => Number(d.user_count) || 0);
+    const artifactCounts = sortedData.map(d => Number(d.artifact_count) || 0);
+    
+    const result = {
+      departments,
+      userCounts,
+      artifactCounts
+    };
+    
+    return result;
   },
+  
+  // For Pie Chart: User Distribution by Department
+  getDepartmentPieChartData: (state): any[] => {    
+    if (!state.departmentPieChartData || state.departmentPieChartData.length === 0) {
+      return [];
+    }
+    
+    // Include ALL departments, even those with 0 users
+    const result = state.departmentPieChartData
+      .map((item: any) => {
+        // Handle both possible response formats
+        const name = item.name || item.department_name || 'Unknown';
+        const value = Number(item.users || item.user_count || 0);
+        const percentage = Number(item.percentage || 0);
+        
+        return {
+          name,
+          value,
+          percentage
+        };
+      })
+      .sort((a, b) => b.value - a.value);
+      return result;
+  },
+},
 
   actions: {
     handleError(error: any, defaultMessage: string, silent: boolean = false): string {
@@ -55,10 +113,13 @@ export const useAnalyticsStore = defineStore('analyticsStore', {
     async fetchTokenWiseDetail(orgId: string, startDate: string, endDate: string, timezone: string) {
       try {
         this.loading = true;
-        const response = await $fetch<{ data: TokenUsageData[] }>(
-          `/api/analytics/${orgId}/tokenData?startDate=${startDate}&endDate=${endDate}&timezone=${encodeURIComponent(timezone)}`,
-          { headers: this.getAuthHeaders() }
-        );
+        // build query string only for provided params
+        const qs = new URLSearchParams();
+        if (startDate) qs.append('startDate', startDate);
+        if (endDate) qs.append('endDate', endDate);
+        if (timezone) qs.append('timezone', timezone);
+        const url = `/api/analytics/${orgId}/tokenData${qs.toString() ? `?${qs.toString()}` : ''}`;
+        const response = await $fetch<{ data: TokenUsageData[] }>(url, { headers: this.getAuthHeaders() });
         this.tokenDetails = response.data || [];
       } catch (error) {
         if (await handleAuthErrorShared(error)) return;
@@ -71,10 +132,12 @@ export const useAnalyticsStore = defineStore('analyticsStore', {
     async fetchAppWiseTokenDetail(orgId: string, startDate: string, endDate: string, timezone: string) {
       try {
         this.loading = true;
-        const response = await $fetch<{ data: AppTokenUsage[] }>(
-          `/api/analytics/${orgId}/appwiseTokenUsage?startDate=${startDate}&endDate=${endDate}&timezone=${encodeURIComponent(timezone)}`,
-          { headers: this.getAuthHeaders() }
-        );
+        const qs2 = new URLSearchParams();
+        if (startDate) qs2.append('startDate', startDate);
+        if (endDate) qs2.append('endDate', endDate);
+        if (timezone) qs2.append('timezone', timezone);
+        const url2 = `/api/analytics/${orgId}/appwiseTokenUsage${qs2.toString() ? `?${qs2.toString()}` : ''}`;
+        const response = await $fetch<{ data: AppTokenUsage[] }>(url2, { headers: this.getAuthHeaders() });
         this.appTokenDetails = response.data || [];
       } catch (error) {
         if (await handleAuthErrorShared(error)) return;
@@ -88,16 +151,19 @@ export const useAnalyticsStore = defineStore('analyticsStore', {
       try {
         this.loading = true;
 
-        const response = await $fetch<ApiResponse<AppTokenUsage[]>>(
-          `/api/analytics/${orgId}/userAppwiseTokenUsage?startDate=${startDate}&endDate=${endDate}&timezone=${encodeURIComponent(timezone)}`,
-          { headers: this.getAuthHeaders() }
-        );
+        const qs3 = new URLSearchParams();
+        if (startDate) qs3.append('startDate', startDate);
+        if (endDate) qs3.append('endDate', endDate);
+        if (timezone) qs3.append('timezone', timezone);
+        const url3 = `/api/analytics/${orgId}/userAppwiseTokenUsage${qs3.toString() ? `?${qs3.toString()}` : ''}`;
+
+        const response = await $fetch<ApiResponse<AppTokenUsage[]>>(url3, { headers: this.getAuthHeaders() });
 
         this.userAppWiseTokenDetail = response.data;
 
         // Parse the counts to numbers
         this.activeUsersCount = Number(response.meta.active_users_count) || 0;
-        this.totalQueriesCount = Number(response.meta.total_queries_count) || 0;
+        // this.totalQueriesCount = Number(response.meta.total_queries_count) || 0;
 
       } catch (error) {
         if (await handleAuthErrorShared(error)) return;
@@ -121,6 +187,11 @@ export const useAnalyticsStore = defineStore('analyticsStore', {
         );
 
         this.organizationDetails = response.data || null;
+
+        // Extract total_queries from the organization details
+        if (response.data?.total_queries !== undefined) {
+          this.totalQueriesCount = Number(response.data.total_queries) || 0;
+        }
       } catch (error) {
         if (await handleAuthErrorShared(error)) return;
         this.handleError(error, 'Failed to fetch organization details');
@@ -185,5 +256,38 @@ export const useAnalyticsStore = defineStore('analyticsStore', {
       }
     },
 
+async fetchDepartmentAnalytics(orgId: string, timezone?: string) {
+    try {
+      this.departmentAnalyticsLoading = true;
+      
+      const params = new URLSearchParams();
+      if (timezone) params.append('timezone', timezone);
+      
+      const url = `/api/analytics/${orgId}/department-analytics${params.toString() ? `?${params.toString()}` : ''}`;
+      
+      const response = await $fetch<{ data: any }>(url, { 
+        headers: this.getAuthHeaders() 
+      });
+      
+      // FIX: Check the structure - the response.data contains bar_chart_data and pie_chart_data
+      if (response.data) {
+        // Reset arrays first to trigger reactivity
+        this.departmentBarChartData = [];
+        this.departmentPieChartData = [];
+        
+        // Then assign new data
+        this.departmentBarChartData = response.data.bar_chart_data || [];
+        this.departmentPieChartData = response.data.pie_chart_data || [];
+
+      }
+      
+      return response;
+    } catch (error) {
+      if (await handleAuthErrorShared(error)) return;
+      this.handleError(error, 'Failed to fetch department analytics');
+    } finally {
+      this.departmentAnalyticsLoading = false;
+    }
   },
+  }
 });

@@ -9,8 +9,16 @@ function getToken(event: H3Event): string | null {
     return header.split(' ')[1]
   }
   try {
-    const cookie = useCookie<string | null>('auth-token')
-    if (cookie?.value) return cookie.value
+    const cookieHeader = String(event.node.req.headers['cookie'] || '')
+    if (cookieHeader) {
+      for (const part of cookieHeader.split(';')) {
+        const [k, ...v] = part.split('=')
+        if (!k) continue
+        const key = k.trim()
+        const val = decodeURIComponent((v || []).join('=').trim())
+        if (key === 'auth-token' || key === 'authToken') return val
+      }
+    }
   } catch {}
   return null
 }

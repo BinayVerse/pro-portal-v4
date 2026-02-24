@@ -40,7 +40,7 @@ export default defineEventHandler(async (event) => {
     let newUser = false;
 
     const userResult = await query(
-      'SELECT * FROM users WHERE email = $1 AND role_id IN (0, 1)',
+      'SELECT * FROM users WHERE email = $1 AND role_id IN (0, 1, 3)',
       [email]
     );
 
@@ -53,8 +53,8 @@ export default defineEventHandler(async (event) => {
 
       try {
         const newUserResult = await query(
-          `INSERT INTO users (email, name, org_id, contact_number, primary_contact, created_at)
-           VALUES ($1, $2, NULL, NULL, FALSE, NOW())
+          `INSERT INTO users (email, name, org_id, contact_number, primary_contact, role_id, created_at)
+           VALUES ($1, $2, NULL, NULL, TRUE, 1, NOW())
            RETURNING *`,
           [email, name]
         );
@@ -64,7 +64,7 @@ export default defineEventHandler(async (event) => {
       }
     } else {
       const adminRoles = userResult.rows.filter(
-        (u: any) => u.role_id === 1 || u.role_id === 0
+        (u: any) => u.role_id === 1 || u.role_id === 0 || u.role_id === 3
       );
 
       if (adminRoles.length > 1) {
@@ -82,7 +82,7 @@ export default defineEventHandler(async (event) => {
 
       // Prevent sign-in for deactivated accounts
       if (typeof user.is_active !== 'undefined' && user.is_active === false) {
-        throw new CustomError('This account has been deactivated. Please contact your administrator.', 401);
+        throw new CustomError('Your account has been deactivated. Please contact your Company Admin.', 401);
       }
     }
 

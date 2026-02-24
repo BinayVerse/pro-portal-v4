@@ -6,6 +6,7 @@
 
 <script setup>
 import { computed, ref, watch, onMounted } from 'vue'
+import { getColorsForLabels, orderLabels } from '@/utils/chartColors'
 
 const isMounted = ref(false)
 
@@ -21,23 +22,37 @@ const props = defineProps({
   },
 })
 
+// Track disabled series
+const disabledSeries = ref(new Set())
+
 // Force re-render key when data changes
 const chartKey = ref(0)
 
 // X-axis categories (user names)
 const categories = computed(() => props.chartData.map((item) => item.name))
-const defaultChannels = ["teams", "whatsapp", "slack"]
-
+const defaultChannels = ['teams', 'whatsapp', 'slack', 'admin']
 
 // Dynamic app keys (all except "name")
-const appKeys = computed(() => {
+const rawAppKeys = computed(() => {
   if (!props.chartData.length) return defaultChannels
   // Include all default channels, even if missing in data
-  const keysInData = Object.keys(props.chartData[0]).filter(k => k !== "name")
+  const keysInData = Object.keys(props.chartData[0]).filter((k) => k !== 'name')
   return Array.from(new Set([...defaultChannels, ...keysInData]))
 })
 
-// Series for ApexCharts
+// Order keys according to canonical APP_ORDER
+const appKeys = computed(() => orderLabels(rawAppKeys.value))
+
+// Get colors with opacity for disabled series
+const getSeriesColors = () => {
+  const baseColors = getColorsForLabels(appKeys.value)
+  return appKeys.value.map((key, index) => {
+    const color = baseColors[index]
+    return disabledSeries.value.has(key) ? color + '40' : color // 40 = 25% opacity (hex)
+  })
+}
+
+// Series for ApexCharts (use ordered keys)
 const series = computed(() => {
   return appKeys.value.map((app) => ({
     name: app,
@@ -45,23 +60,15 @@ const series = computed(() => {
   }))
 })
 
-// Dynamic HSL colors
-const generateColors = (count) => {
-  const colors = []
-
-  if (count > 0) colors.push('hsl(207, 90%, 55%)')
-
-  // Generate remaining colors dynamically
-  for (let i = 1; i < count; i++) {
-    let hue = (i * 137.508) % 360
-    // 🚫 avoid red (0–20 and 340–360)
-    if (hue < 20) hue += 20
-    if (hue > 340) hue -= 20
-
-    colors.push(`hsl(${hue}, 55%, 55%)`)
+// Handle legend click
+const handleLegendClick = (seriesName) => {
+  if (disabledSeries.value.has(seriesName)) {
+    disabledSeries.value.delete(seriesName)
+  } else {
+    disabledSeries.value.add(seriesName)
   }
-
-  return colors
+  // Force chart update by incrementing key
+  chartKey.value++
 }
 
 // Chart options
@@ -78,6 +85,14 @@ const chartOptions = computed(() => ({
       animateGradually: { enabled: true, delay: 150 },
       dynamicAnimation: { enabled: true, speed: 350 },
     },
+    events: {
+      legendClick: function(chartContext, seriesIndex, config) {
+        // Get the series name from the index
+        const seriesName = appKeys.value[seriesIndex]
+        handleLegendClick(seriesName)
+        return false // Prevent default behavior
+      }
+    }
   },
   plotOptions: {
     bar: {
@@ -92,7 +107,7 @@ const chartOptions = computed(() => ({
     enabled: false,
     style: { fontSize: '10px', colors: ['#fff'] },
     offsetY: -20,
-      formatter: (val) => (val > 0 ? val.toLocaleString() : ''),
+    formatter: (val) => (val > 0 ? val.toLocaleString() : ''),
   },
   xaxis: {
     categories: categories.value,
@@ -111,6 +126,9 @@ const chartOptions = computed(() => ({
     axisTicks: { show: true, color: '#78909C' },
   },
   yaxis: {
+    tooltip: {
+        enabled: false
+      },
     title: { text: 'Total Tokens' },
     labels: {
       formatter: (val) => val.toLocaleString(),
@@ -122,23 +140,36 @@ const chartOptions = computed(() => ({
     position: 'top',
     horizontalAlign: 'center',
     fontSize: '14px',
-    markers: { width: 12, height: 12, radius: 6 },
+    markers: { 
+      width: 12, 
+      height: 12, 
+      radius: 6,
+      // Use custom colors that reflect disabled state
+      fillColors: getSeriesColors()
+    },
     itemMargin: { horizontal: 10, vertical: 5 },
     formatter: (seriesName) => seriesName.charAt(0).toUpperCase() + seriesName.slice(1),
+    onItemClick: {
+      toggleDataSeries: false // Disable default toggle behavior
+    }
   },
-  fill: { opacity: 1 },
-  colors: generateColors(appKeys.value.length), // dynamic HSL colors
+  fill: { 
+    opacity: 1,
+    colors: getSeriesColors()
+  },
+  colors: getSeriesColors(),
   tooltip: {
     theme: 'dark',
     shared: true,
     intersect: false,
     custom: function ({ series, dataPointIndex, w }) {
       const category = w.globals.labels[dataPointIndex]
+      const colors = w.globals.colors // This will now include opacity for disabled series
 
       let rows = w.globals.seriesNames
         .map((name, i) => {
           const val = series[i][dataPointIndex]
-          const color = w.globals.colors[i]
+          const color = colors[i]
           if (val === 0) return ''
           const displayName = name.charAt(0).toUpperCase() + name.slice(1)
           return `
@@ -191,11 +222,19 @@ const chartOptions = computed(() => ({
   ],
 }))
 
-// Rerender on data/appKeys changes
+// Reset disabled state when data changes
 watch(
   () => props.chartData,
-  () => chartKey.value++,
+  () => {
+    disabledSeries.value.clear()
+    chartKey.value++
+  },
   { deep: true },
 )
-watch(appKeys, () => chartKey.value++)
+
+// Watch for appKeys changes
+watch(appKeys, () => {
+  disabledSeries.value.clear()
+  chartKey.value++
+})
 </script>
