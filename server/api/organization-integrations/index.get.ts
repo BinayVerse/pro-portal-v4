@@ -40,7 +40,7 @@ export default defineEventHandler(async (event) => {
 
     // Build dynamic SQL query
     let sql = `
-      SELECT 
+      SELECT
         oi.id,
         oi.organization_id,
         oi.provider_id,
@@ -48,6 +48,7 @@ export default defineEventHandler(async (event) => {
         oi.module_id,
         oi.connection_name,
         oi.client_id,
+        oi.client_secret,
         oi.api_key,
         oi.access_token,
         oi.refresh_token,

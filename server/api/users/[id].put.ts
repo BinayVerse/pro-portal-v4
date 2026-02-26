@@ -195,7 +195,7 @@ export default defineEventHandler(async (event) => {
       const password = generateRandomPassword()
       const hashedPassword = await bcrypt.hash(password, 10)
       updates.push(`password = $${values.length + 1}::text`)
-      values.push(null)
+      values.push(hashedPassword)
 
       const { resetLink } = await generateResetLink(currentUser.email, config.public.appUrl, userId)
       await sendWelcomeMail(currentUser.name, currentUser.email, password, appLink, resetLink)

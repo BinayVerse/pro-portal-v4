@@ -2,7 +2,7 @@ import { defineEventHandler, setResponseStatus, getRouterParam } from 'h3'
 import { query } from '../../utils/db'
 import { CustomError } from '../../utils/custom.error'
 import jwt from 'jsonwebtoken'
-import { deleteOrganizationIntegration } from '../../utils/dbHelpers'
+import { deleteOrganizationIntegration, createIntegrationAuditLog } from '../../utils/dbHelpers'
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
@@ -38,9 +38,13 @@ export default defineEventHandler(async (event) => {
       throw new CustomError('Integration ID is required', 400)
     }
 
-    // Get current integration to verify ownership and get provider_id
+    // Get current integration to verify ownership and get provider_id and other data
     const currentRes = await query(
-      'SELECT provider_id FROM public.organization_integrations WHERE id = $1 AND organization_id = $2',
+      `SELECT
+        provider_id, connection_name, client_id, client_secret, api_key, access_token,
+        refresh_token, token_expiry, base_url, login_url, metadata_json, status
+       FROM public.organization_integrations
+       WHERE id = $1 AND organization_id = $2`,
       [integrationId, orgId]
     )
 
@@ -49,7 +53,8 @@ export default defineEventHandler(async (event) => {
       throw new CustomError('Integration not found', 404)
     }
 
-    const providerId = currentRes.rows[0].provider_id
+    const currentData = currentRes.rows[0]
+    const providerId = currentData.provider_id
 
     // Delete integration using helper function
     const result = await deleteOrganizationIntegration(
@@ -62,6 +67,17 @@ export default defineEventHandler(async (event) => {
       setResponseStatus(event, 500)
       throw new CustomError(result.error || 'Failed to delete integration', 500)
     }
+
+    // Create audit log for deletion
+    await createIntegrationAuditLog(
+      integrationId,
+      orgId,
+      'delete',
+      userId,
+      event,
+      currentData,
+      undefined
+    )
 
     setResponseStatus(event, 200)
     return {

@@ -2,7 +2,7 @@ import { defineEventHandler, readBody, setResponseStatus } from 'h3'
 import { query } from '../../utils/db'
 import { CustomError } from '../../utils/custom.error'
 import jwt from 'jsonwebtoken'
-import { createOrganizationIntegration } from '../../utils/dbHelpers'
+import { createOrganizationIntegration, createIntegrationAuditLog } from '../../utils/dbHelpers'
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
@@ -64,32 +64,45 @@ export default defineEventHandler(async (event) => {
     }
 
     // Create integration using helper function
+    const integrationData = {
+      connection_name: body.connection_name,
+      client_id: body.client_id,
+      client_secret: body.client_secret || null,
+      api_key: body.api_key || null,
+      access_token: body.access_token || null,
+      refresh_token: body.refresh_token || null,
+      token_expiry: body.token_expiry || null,
+      base_url: body.base_url || null,
+      login_url: body.login_url || null,
+      metadata_json: body.metadata_json || {},
+      status: body.status || 'active',
+      hrms_system: body.hrms_system,
+      is_hrms: body.is_hrms
+    }
+
     const result = await createOrganizationIntegration(
       orgId,
       body.provider_id,
       body.agent_id,
       body.module_id,
-      {
-        connection_name: body.connection_name,
-        client_id: body.client_id,
-        client_secret: body.client_secret || null,
-        api_key: body.api_key || null,
-        access_token: body.access_token || null,
-        refresh_token: body.refresh_token || null,
-        token_expiry: body.token_expiry || null,
-        base_url: body.base_url || null,
-        login_url: body.login_url || null,
-        metadata_json: body.metadata_json || {},
-        status: body.status || 'active',
-        hrms_system: body.hrms_system,
-        is_hrms: body.is_hrms
-      }
+      integrationData
     )
 
     if (!result.success) {
       setResponseStatus(event, 500)
       throw new CustomError(result.error || 'Failed to create integration', 500)
     }
+
+    // Create audit log for creation
+    await createIntegrationAuditLog(
+      result.id!,
+      orgId,
+      'create',
+      userId,
+      event,
+      undefined,
+      integrationData
+    )
 
     setResponseStatus(event, 201)
     return {

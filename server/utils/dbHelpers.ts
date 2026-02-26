@@ -1,6 +1,7 @@
 import { query } from '~/server/utils/db'
 import type { H3Event } from 'h3'
-import { getOrgFromToken } from './auth';
+import { getOrgFromToken } from './auth'
+import { getHeader } from 'h3';
 
 function extractUuid(value: string): string | null {
     if (!value) return null
@@ -744,5 +745,56 @@ export async function deleteOrganizationIntegration(
     await query('ROLLBACK', [])
     console.error('❌ DB Error: deleteOrganizationIntegration failed', error)
     return { success: false, error: error.message || 'Delete failed' }
+  }
+}
+
+/**
+ * Log integration audit trail for create, update, delete, and status change operations
+ */
+export async function createIntegrationAuditLog(
+  integrationId: string,
+  orgId: string,
+  action: 'create' | 'update' | 'delete' | 'status_change',
+  userId: string,
+  event: H3Event,
+  oldData?: Record<string, any>,
+  newData?: Record<string, any>
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    // Get user's name
+    const userRes = await query(
+      'SELECT name FROM public.users WHERE user_id = $1',
+      [userId]
+    )
+    const performedByName = userRes.rows[0]?.name || null
+
+    // Extract IP address and user agent
+    const ipAddress = getHeader(event, 'x-forwarded-for') || event.node.req.socket.remoteAddress || null
+    const userAgent = getHeader(event, 'user-agent') || null
+
+    // Insert audit log
+    await query(
+      `INSERT INTO public.organization_integration_audit_logs (
+        integration_id, organization_id, action, performed_by, performed_by_name,
+        old_data, new_data, ip_address, user_agent
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+      [
+        integrationId,
+        orgId,
+        action,
+        userId,
+        performedByName,
+        oldData ? JSON.stringify(oldData) : null,
+        newData ? JSON.stringify(newData) : null,
+        ipAddress,
+        userAgent
+      ]
+    )
+
+    return { success: true }
+  } catch (error: any) {
+    console.error('❌ DB Error: createIntegrationAuditLog failed', error)
+    return { success: false, error: error.message || 'Audit log failed' }
   }
 }

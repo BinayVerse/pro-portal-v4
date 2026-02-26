@@ -11,6 +11,7 @@ import type {
   GroupedIntegration,
 } from './types'
 import { useNotification } from '~/composables/useNotification'
+import { encryptSensitiveFields, decryptSensitiveFields } from '~/composables/useEncryption'
 
 export const useOrganizationIntegrationsStore = defineStore('organizationIntegrations', {
   state: () => ({
@@ -100,6 +101,21 @@ export const useOrganizationIntegrationsStore = defineStore('organizationIntegra
       // Get intersection - providers available for both agent and module
       const intersection = providersForAgent.filter((p) => providersForModule.includes(p))
       return state.providers.filter((p) => intersection.includes(p.id))
+    },
+
+    // Get modules available for an agent and provider combination
+    getModulesForAgentAndProvider: (state) => (agentId: string, providerId: string) => {
+      const modulesForAgent = state.relationships.agentModules
+        .filter((rel) => rel.agent_id === agentId)
+        .map((rel) => rel.module_id)
+
+      const modulesForProvider = state.relationships.providerModules
+        .filter((rel) => rel.provider_id === providerId)
+        .map((rel) => rel.module_id)
+
+      // Get intersection - modules available for both agent and provider
+      const intersection = modulesForAgent.filter((m) => modulesForProvider.includes(m))
+      return state.modules.filter((m) => intersection.includes(m.id))
     },
 
     // Get grouped integrations (by provider/agent/module)
@@ -313,6 +329,8 @@ export const useOrganizationIntegrationsStore = defineStore('organizationIntegra
         })
 
         if (response.status === 'success' && response.data) {
+          // Note: Data is returned encrypted from API, kept encrypted in store
+          // Will be decrypted only when displayed to user (client-side)
           this.integrations = response.data
           return { success: true, data: response.data }
         } else {
@@ -359,10 +377,18 @@ export const useOrganizationIntegrationsStore = defineStore('organizationIntegra
       this.loading = true
       this.error = null
       try {
+        // Encrypt sensitive fields before sending to server
+        const encryptedPayload = await encryptSensitiveFields(payload, [
+          'client_secret',
+          'api_key',
+          'access_token',
+          'refresh_token',
+        ])
+
         const response = await $fetch<ApiResponse<{ id: string }>>('/api/organization-integrations', {
           method: 'POST',
           headers: this.getAuthHeaders(),
-          body: payload,
+          body: encryptedPayload,
         })
 
         if (response.status === 'success') {
@@ -387,12 +413,20 @@ export const useOrganizationIntegrationsStore = defineStore('organizationIntegra
       this.loading = true
       this.error = null
       try {
+        // Encrypt sensitive fields before sending to server
+        const encryptedPayload = await encryptSensitiveFields(payload, [
+          'client_secret',
+          'api_key',
+          'access_token',
+          'refresh_token',
+        ])
+
         const response = await $fetch<ApiResponse<void>>(
           `/api/organization-integrations/${id}`,
           {
             method: 'PUT',
             headers: this.getAuthHeaders(),
-            body: payload,
+            body: encryptedPayload,
           }
         )
 
@@ -414,7 +448,7 @@ export const useOrganizationIntegrationsStore = defineStore('organizationIntegra
     },
 
     // Update integration status only
-    async updateIntegrationStatus(id: string, status: 'active' | 'inactive' | 'pending') {
+    async updateIntegrationStatus(id: string, status: 'active' | 'inactive' | 'expired' | 'failed') {
       return this.updateIntegration(id, { status })
     },
 
@@ -445,6 +479,24 @@ export const useOrganizationIntegrationsStore = defineStore('organizationIntegra
         return { success: false, message }
       } finally {
         this.loading = false
+      }
+    },
+
+    // Decrypt integration data for display (e.g., in edit form)
+    // This decrypts only when needed, not on API fetch
+    async decryptIntegrationForDisplay(
+      integration: OrganizationIntegration,
+    ): Promise<OrganizationIntegration> {
+      try {
+        return await decryptSensitiveFields(integration, [
+          'client_secret',
+          'api_key',
+          'access_token',
+          'refresh_token',
+        ])
+      } catch (error) {
+        console.error('Failed to decrypt integration:', error)
+        return integration
       }
     },
 

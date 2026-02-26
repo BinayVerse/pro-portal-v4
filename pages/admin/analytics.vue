@@ -2,12 +2,17 @@
   <AdminLayout>
     <div class="space-y-6">
       <!-- Header with Date Range -->
-      <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 sm:gap-6" style="margin-top: 0">
+      <div
+        class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 sm:gap-6"
+        style="margin-top: 0"
+      >
         <div>
           <h1 class="text-lg sm:text-xl lg:text-2xl font-bold text-white">Analytics & Reports</h1>
           <p class="text-xs sm:text-sm lg:text-base text-gray-400">Comprehensive usage reports</p>
         </div>
-        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 flex-shrink-0">
+        <div
+          class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 flex-shrink-0"
+        >
           <select v-model="selectedTimeRange" class="input-field">
             <option v-for="option in timeRangeOptions" :key="option.value" :value="option.value">
               {{ option.rangeLabel }}
@@ -175,7 +180,7 @@
         </div>
         <div class="p-6 relative min-h-80">
           <div
-            v-if="loadingStates.metrics"
+            v-if="loadingStates.areaChart"
             class="absolute inset-0 flex items-center justify-center"
           >
             <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
@@ -206,7 +211,7 @@
             </div>
           </div>
           <div class="flex-1 p-6 relative min-h-[450px]">
-            <DepartmentBarChart 
+            <DepartmentBarChart
               :chart-data="analyticsStore.getDepartmentBarChartData"
               :loading="loadingStates.departmentBarChart"
             />
@@ -220,7 +225,7 @@
             <p class="text-gray-400 text-sm">User percentage distribution across departments</p>
           </div>
           <div class="flex-1 flex items-center justify-center p-6 relative min-h-80">
-            <DepartmentPieChart 
+            <DepartmentPieChart
               :data="analyticsStore.getDepartmentPieChartData"
               :loading="loadingStates.departmentPieChart"
             />
@@ -1035,11 +1040,11 @@ const splitFrequentQuestions = computed(() => {
 
 const forceFetchDepartmentData = async () => {
   if (organizationId.value) {
-    const { startDate, endDate, timeZone: userTimeZone } = dateRange.value;
-    console.log('Force fetching department data with:', { startDate, endDate, userTimeZone });
-    await analyticsStore.fetchDepartmentAnalytics(organizationId.value, userTimeZone);
+    const { startDate, endDate, timeZone: userTimeZone } = dateRange.value
+    console.log('Force fetching department data with:', { startDate, endDate, userTimeZone })
+    await analyticsStore.fetchDepartmentAnalytics(organizationId.value, userTimeZone)
   }
-};
+}
 
 // Call this in onMounted after the main fetch
 onMounted(async () => {
@@ -1048,14 +1053,14 @@ onMounted(async () => {
 
   await fetchUserProfile()
   await fetchData()
-  
+
   // Double-check department data is loaded
   setTimeout(() => {
     if (analyticsStore.departmentBarChartData.length === 0) {
-      console.log('Department data still empty, forcing refetch...');
-      forceFetchDepartmentData();
+      console.log('Department data still empty, forcing refetch...')
+      forceFetchDepartmentData()
     }
-  }, 1000);
+  }, 1000)
 })
 
 // Actions
@@ -1106,6 +1111,7 @@ const fetchData = async () => {
         .fetchTokenWiseDetail(organizationId.value, startDate, endDate, userTimeZone)
         .finally(() => {
           loadingStates.value.metrics = false
+          loadingStates.value.areaChart = false
         }),
 
       analyticsStore.fetchOrganizationDocuments(organizationId.value).finally(() => {
@@ -1131,17 +1137,18 @@ const fetchData = async () => {
           loadingStates.value.frequentQuestions = false
         }),
       // Add department analytics fetch
-      analyticsStore
-        .fetchDepartmentAnalytics(organizationId.value, userTimeZone)
-        .finally(() => {
-          loadingStates.value.departmentBarChart = false
-          loadingStates.value.departmentPieChart = false
-        }),
-    ])
+      analyticsStore.fetchDepartmentAnalytics(organizationId.value, userTimeZone).finally(() => {
+        loadingStates.value.departmentBarChart = false
+        loadingStates.value.departmentPieChart = false
+      }),
+    ]).finally(() => {
+      loading.value = false
+    })
   } catch (error) {
     console.error('Error fetching analytics data:', error)
     showNotification('Failed to load analytics data', 'error')
     setAllLoadingStates(false)
+    loading.value = false
   }
 }
 
@@ -1193,7 +1200,7 @@ const exportReport = () => {
       rows.push([date, user, String(tokens)])
     })
 
-      // Add Department Analytics section
+    // Add Department Analytics section
     rows.push([], ['--- Department Analytics ---'])
 
     // Users & Artifacts by Department
@@ -1204,7 +1211,7 @@ const exportReport = () => {
       rows.push([
         dept.department_name,
         String(dept.user_count || 0),
-        String(dept.artifact_count || 0)
+        String(dept.artifact_count || 0),
       ])
     })
 
@@ -1216,7 +1223,7 @@ const exportReport = () => {
       rows.push([
         dept.name || dept.department_name || 'Unknown',
         String(dept.users || dept.value || 0),
-        `${dept.percentage || 0}%`
+        `${dept.percentage || 0}%`,
       ])
     })
 
@@ -1237,7 +1244,6 @@ const exportReport = () => {
     frequentQuestions.value.slice(0, 10).forEach((faq: any) => {
       rows.push([`"${faq.question.replace(/"/g, '""')}"`, String(faq.count || 0)])
     })
-
 
     const csvContent = rows.map((r) => r.join(',')).join('\n')
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })

@@ -771,6 +771,12 @@ const handleIntegrationsMouseLeave = () => {
 }
 
 const checkAndShowSubscriptionModal = async () => {
+  // Skip subscription check while profile is incomplete (user is still setting up org_id)
+  if (!isProfileComplete.value) {
+    subscriptionCheck.closeModal()
+    return
+  }
+
   // Fetch org plan if user is authenticated
   if (auth.user) {
     try {

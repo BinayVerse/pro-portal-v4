@@ -308,9 +308,6 @@ export default defineEventHandler(async (event) => {
         /** ------------------------------------------------------------------
          * APPLY USER UPDATES
          * ------------------------------------------------------------------ */
-        updates.push(`password = $${updates.length + 1}`);
-        values.push(null);
-
         updates.push(`updated_at = CURRENT_TIMESTAMP`);
         values.push(user_id);
 

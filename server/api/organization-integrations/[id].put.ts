@@ -2,7 +2,7 @@ import { defineEventHandler, readBody, setResponseStatus, getRouterParam } from 
 import { query } from '../../utils/db'
 import { CustomError } from '../../utils/custom.error'
 import jwt from 'jsonwebtoken'
-import { updateOrganizationIntegration } from '../../utils/dbHelpers'
+import { updateOrganizationIntegration, createIntegrationAuditLog } from '../../utils/dbHelpers'
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
@@ -41,9 +41,14 @@ export default defineEventHandler(async (event) => {
     // Read request body
     const body = await readBody(event)
 
-    // Get current integration to verify ownership and get provider_id
+    // Get current integration to verify ownership and get all current values
     const currentRes = await query(
-      'SELECT provider_id FROM public.organization_integrations WHERE id = $1 AND organization_id = $2',
+      `SELECT
+        provider_id, connection_name, client_id, client_secret, api_key, access_token,
+        refresh_token, token_expiry, base_url, login_url, metadata_json,
+        status
+       FROM public.organization_integrations
+       WHERE id = $1 AND organization_id = $2`,
       [integrationId, orgId]
     )
 
@@ -52,28 +57,33 @@ export default defineEventHandler(async (event) => {
       throw new CustomError('Integration not found', 404)
     }
 
-    const providerId = currentRes.rows[0].provider_id
+    const currentData = currentRes.rows[0]
+    const providerId = currentData.provider_id
+
+    // Merge current values with provided updates
+    // This prevents null constraint violations when partially updating (e.g., status only)
+    const mergedData = {
+      connection_name: body.connection_name ?? currentData.connection_name,
+      client_id: body.client_id ?? currentData.client_id,
+      client_secret: body.client_secret ?? currentData.client_secret,
+      api_key: body.api_key ?? currentData.api_key,
+      access_token: body.access_token ?? currentData.access_token,
+      refresh_token: body.refresh_token ?? currentData.refresh_token,
+      token_expiry: body.token_expiry ?? currentData.token_expiry,
+      base_url: body.base_url ?? currentData.base_url,
+      login_url: body.login_url ?? currentData.login_url,
+      metadata_json: body.metadata_json ?? currentData.metadata_json,
+      status: body.status ?? currentData.status,
+      hrms_system: body.hrms_system,
+      is_hrms: body.is_hrms,
+    }
 
     // Update integration using helper function
     const result = await updateOrganizationIntegration(
       integrationId,
       orgId,
       providerId,
-      {
-        connection_name: body.connection_name,
-        client_id: body.client_id,
-        client_secret: body.client_secret,
-        api_key: body.api_key,
-        access_token: body.access_token,
-        refresh_token: body.refresh_token || null,
-        token_expiry: body.token_expiry || null,
-        base_url: body.base_url || null,
-        login_url: body.login_url || null,
-        metadata_json: body.metadata_json || {},
-        status: body.status || 'active',
-        hrms_system: body.hrms_system,
-        is_hrms: body.is_hrms
-      }
+      mergedData
     )
 
     if (!result.success) {
@@ -81,11 +91,32 @@ export default defineEventHandler(async (event) => {
       throw new CustomError(result.error || 'Failed to update integration', 500)
     }
 
+    // Determine action type and build message
+    let message = 'Organization integration updated successfully'
+    let action: 'update' | 'status_change' = 'update'
+
+    if (body.status && Object.keys(body).length === 1) {
+      const statusLabel = body.status.charAt(0).toUpperCase() + body.status.slice(1)
+      message = `${currentData.connection_name}: Status updated to ${statusLabel}`
+      action = 'status_change'
+    }
+
+    // Create audit log
+    await createIntegrationAuditLog(
+      integrationId,
+      orgId,
+      action,
+      userId,
+      event,
+      currentData,
+      mergedData
+    )
+
     setResponseStatus(event, 200)
     return {
       statusCode: 200,
       status: 'success',
-      message: 'Organization integration updated successfully'
+      message
     }
   } catch (error: any) {
     console.error('Organization Integration Update Error:', error)
