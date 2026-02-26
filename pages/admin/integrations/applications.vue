@@ -70,212 +70,264 @@
       <p class="ml-3 text-gray-400">Loading integrations...</p>
     </div>
 
-    <!-- Applications List -->
+    <!-- Grouped Applications List -->
     <div
       v-else-if="filteredApplications.length > 0"
-      class="space-y-3"
+      class="space-y-4"
       @click="
         () => {
           activeAppStatusMenu = null
         }
       "
     >
+      <!-- Integration Parent Card -->
       <div
-        v-for="app in filteredApplications"
-        :key="app.id"
-        class="bg-dark-800 border border-dark-700 rounded-lg hover:border-dark-600 transition-colors"
+        v-for="group in filteredApplications"
+        :key="group.id"
+        class="bg-dark-800 border border-dark-700 rounded-lg overflow-hidden"
       >
-        <!-- Application Title Bar -->
+        <!-- Integration Header -->
         <div
-          class="px-4 sm:px-6 py-4 flex items-center justify-between bg-dark-800 hover:bg-dark-700/30 transition-colors overflow-visible"
+          class="px-4 sm:px-6 py-4 flex items-center justify-between bg-dark-800 hover:bg-dark-700/30 transition-colors border-b border-dark-700"
         >
-          <!-- Left: Icon + Name -->
+          <!-- Left: Icon + Integration Info -->
           <div class="flex items-center gap-4 flex-1 min-w-0">
-            <!-- Application Icon -->
+            <!-- Provider Icon -->
             <div
-              class="w-10 h-10 rounded-lg flex-shrink-0 flex items-center justify-center"
-              :class="getIconBackground(app)"
+              class="w-12 h-12 rounded-lg flex-shrink-0 flex items-center justify-center"
+              :class="getIconBackground({ provider: group.provider })"
             >
-              <AppTooltip :text="app.provider || app.name">
-                <UIcon :name="getAppIcon(app)" class="w-6 h-6 text-white" />
+              <AppTooltip :text="group.provider">
+                <UIcon :name="getAppIcon({ provider: group.provider })" class="w-6 h-6 text-white" />
               </AppTooltip>
             </div>
 
-            <!-- Application Name + Details -->
+            <!-- Integration Details -->
             <div class="min-w-0 flex-1">
               <h3 class="text-base sm:text-lg font-semibold text-white break-words">
-                {{ app.name }}
+                {{ group.provider }} Integration
               </h3>
               <div class="flex flex-wrap gap-2 items-center text-xs sm:text-sm text-gray-400 mt-1">
-                <span v-if="app.module">{{ app.module }}</span>
-                <span v-if="app.provider" class="hidden sm:inline">•</span>
-                <span v-if="app.provider" class="hidden sm:inline text-gray-500">{{
-                  app.provider
+                <span v-if="group.agent">{{ group.agent }}</span>
+                <span v-if="group.module" class="hidden sm:inline">•</span>
+                <span v-if="group.module" class="hidden sm:inline text-gray-500">{{
+                  group.module
                 }}</span>
               </div>
             </div>
           </div>
 
-          <!-- Right: Status Badge + Actions -->
-          <div class="flex items-center gap-2 flex-shrink-0 ml-4">
-            <!-- Status Badge -->
-            <span
-              :class="[
-                'px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 whitespace-nowrap',
-                app.status === 'Active'
-                  ? 'bg-green-500/20 text-green-400'
-                  : app.status === 'Inactive'
-                    ? 'bg-gray-500/20 text-gray-400'
-                    : 'bg-yellow-500/20 text-yellow-400',
-              ]"
-            >
-              <span
-                class="w-2 h-2 rounded-full"
-                :class="
-                  app.status === 'Active'
-                    ? 'bg-green-400'
-                    : app.status === 'Inactive'
-                      ? 'bg-gray-400'
-                      : 'bg-yellow-400'
-                "
-              />
-              {{ app.status }}
-            </span>
-
-            <!-- Status Change Dropdown -->
-            <div class="relative" @click.stop>
-              <AppTooltip text="Change status">
-                <UButton
-                  color="gray"
-                  variant="ghost"
-                  icon="heroicons:cog-6-tooth"
-                  size="sm"
-                  data-menu-trigger
-                  @click.stop="toggleAppStatusMenu(app.id)"
-                />
-              </AppTooltip>
-              <div
-                v-if="activeAppStatusMenu === app.id"
-                class="absolute right-0 mt-1 w-48 bg-dark-800 border border-dark-700 rounded-lg shadow-lg py-1 z-50 top-full"
-                data-menu-dropdown
-                @click.stop
-              >
-                <button
-                  @click="
-                    () => {
-                      updateStatus(app.id, 'Active')
-                      activeAppStatusMenu = null
-                    }
-                  "
-                  :class="[
-                    'w-full px-4 py-2 text-sm text-left flex items-center gap-2 hover:bg-dark-700 transition-colors',
-                    app.status === 'Active' ? 'text-primary-400' : 'text-gray-300',
-                  ]"
-                >
-                  <UIcon name="heroicons:check-circle" class="w-4 h-4" />
-                  Active
-                </button>
-                <button
-                  @click="
-                    () => {
-                      updateStatus(app.id, 'Inactive')
-                      activeAppStatusMenu = null
-                    }
-                  "
-                  :class="[
-                    'w-full px-4 py-2 text-sm text-left flex items-center gap-2 hover:bg-dark-700 transition-colors',
-                    app.status === 'Inactive' ? 'text-primary-400' : 'text-gray-300',
-                  ]"
-                >
-                  <UIcon name="heroicons:minus-circle" class="w-4 h-4" />
-                  Inactive
-                </button>
-                <button
-                  @click="
-                    () => {
-                      updateStatus(app.id, 'Pending')
-                      activeAppStatusMenu = null
-                    }
-                  "
-                  :class="[
-                    'w-full px-4 py-2 text-sm text-left flex items-center gap-2 hover:bg-dark-700 transition-colors',
-                    app.status === 'Pending' ? 'text-primary-400' : 'text-gray-300',
-                  ]"
-                >
-                  <UIcon name="heroicons:clock" class="w-4 h-4" />
-                  Pending
-                </button>
-              </div>
-            </div>
-
-            <!-- Eye Icon Toggle -->
-            <AppTooltip
-              :text="expandedRows.includes(app.id) ? 'Collapse details' : 'Expand details'"
-            >
-              <UButton
-                @click="toggleExpandedRow(app.id)"
-                variant="ghost"
-                :color="expandedRows.includes(app.id) ? 'primary' : 'gray'"
-                :icon="expandedRows.includes(app.id) ? 'heroicons:eye-slash' : 'heroicons:eye'"
-                size="sm"
-              />
-            </AppTooltip>
-
-            <!-- Delete Icon -->
-            <AppTooltip text="Delete application">
-              <UButton
-                @click="deleteApplication(app.id)"
-                variant="ghost"
-                color="red"
-                icon="heroicons:trash-20-solid"
-                size="sm"
-              />
-            </AppTooltip>
-          </div>
+          <!-- Right: Expand/Collapse -->
+          <AppTooltip
+            :text="expandedRows.includes(group.id) ? 'Collapse connections' : 'Expand connections'"
+          >
+            <UButton
+              @click="toggleExpandedRow(group.id)"
+              variant="ghost"
+              :color="expandedRows.includes(group.id) ? 'primary' : 'gray'"
+              :icon="expandedRows.includes(group.id) ? 'heroicons:chevron-up' : 'heroicons:chevron-down'"
+              size="sm"
+            />
+          </AppTooltip>
         </div>
 
-        <!-- Expanded Details -->
+        <!-- Connections List -->
         <div
-          v-if="expandedRows.includes(app.id)"
-          class="border-t border-dark-700 bg-dark-900/50 px-4 sm:px-6 py-4 space-y-4 overflow-hidden"
+          v-if="expandedRows.includes(group.id)"
+          class="border-t border-dark-700 bg-dark-900/50 px-4 sm:px-6 py-4"
         >
-          <!-- Integration Details -->
-          <div class="space-y-3">
-            <h4 class="text-sm font-semibold text-gray-300 flex items-center gap-2">
-              <UIcon name="heroicons:information-circle" class="w-4 h-4" />
-              Integration Details
-            </h4>
+          <!-- Connections Header with Count and Add Button -->
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+              <UIcon name="heroicons:link" class="w-4 h-4 text-gray-400" />
+              <h4 class="text-sm font-semibold text-gray-300">
+                Connection ({{ group.connections.length }})
+              </h4>
+            </div>
+            <UButton
+              @click="openAddConnectionModal(group)"
+              icon="heroicons:plus"
+              color="primary"
+              variant="outline"
+              size="sm"
+            >
+              Add Connection
+            </UButton>
+          </div>
 
-            <div class="text-xs text-gray-400 space-y-2 bg-dark-800 rounded-lg p-3">
-              <div class="flex justify-between items-start">
-                <span class="text-gray-500 font-medium">Provider:</span>
-                <span class="text-gray-300">{{ app.integrationData?.provider_name }}</span>
+          <!-- Connection Cards -->
+          <div class="space-y-3">
+            <div
+              v-for="connection in group.connections"
+              :key="connection.id"
+              class="bg-dark-800 border border-dark-700 rounded-lg p-4 space-y-3"
+            >
+            <!-- Connection Header -->
+            <div class="flex items-center justify-between">
+              <div class="flex-1">
+                <h4 class="text-sm font-semibold text-white">{{ connection.connection_name }}</h4>
+                <p class="text-xs text-gray-400 mt-1">
+                  Created {{ formatDate(connection.created_at) }}
+                </p>
               </div>
-              <div class="flex justify-between items-start">
-                <span class="text-gray-500 font-medium">Agent:</span>
-                <span class="text-gray-300">{{ app.integrationData?.agent_name }}</span>
-              </div>
-              <div class="flex justify-between items-start">
-                <span class="text-gray-500 font-medium">Module:</span>
-                <span class="text-gray-300">{{ app.integrationData?.module_name }}</span>
-              </div>
-              <div class="flex justify-between items-start" v-if="app.integrationData?.client_id">
-                <span class="text-gray-500 font-medium">Client ID:</span>
-                <span class="font-mono text-gray-300 break-all text-right ml-4">{{
-                  maskSensitiveData(app.integrationData.client_id)
-                }}</span>
-              </div>
-              <div v-if="app.integrationData?.login_url" class="flex justify-between items-start">
-                <span class="text-gray-500 font-medium">Login URL:</span>
-                <span class="font-mono text-gray-300 break-all text-right ml-4">{{
-                  app.integrationData.login_url
-                }}</span>
-              </div>
-              <div v-if="app.integrationData?.created_at" class="flex justify-between items-start">
-                <span class="text-gray-500 font-medium">Created:</span>
-                <span class="text-gray-300">{{ formatDate(app.integrationData.created_at) }}</span>
+
+              <!-- Status Badge + Actions -->
+              <div class="flex items-center gap-2 flex-shrink-0 ml-4">
+                <!-- Status Badge -->
+                <span
+                  :class="[
+                    'px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 whitespace-nowrap',
+                    connection.status === 'Active'
+                      ? 'bg-green-500/20 text-green-400'
+                      : connection.status === 'Inactive'
+                        ? 'bg-gray-500/20 text-gray-400'
+                        : connection.status === 'Expired'
+                        ? 'bg-yellow-500/20 text-yellow-400'
+                        : 'bg-red-500/20 text-red-400',
+                  ]"
+                >
+                  <span
+                    class="w-2 h-2 rounded-full"
+                    :class="
+                      connection.status === 'Active'
+                        ? 'bg-green-400'
+                        : connection.status === 'Inactive'
+                          ? 'bg-gray-400'
+                          : connection.status === 'Expired'
+                          ? 'bg-yellow-400'
+                          : 'bg-red-400'
+                    "
+                  />
+                  {{ connection.status }}
+                </span>
+
+                <!-- Status Change Dropdown -->
+                <div class="relative" @click.stop>
+                  <AppTooltip text="Change status">
+                    <UButton
+                      color="gray"
+                      variant="ghost"
+                      icon="heroicons:cog-6-tooth"
+                      size="sm"
+                      data-menu-trigger
+                      @click.stop="toggleAppStatusMenu(connection.id)"
+                    />
+                  </AppTooltip>
+                  <div
+                    v-if="activeAppStatusMenu === connection.id"
+                    class="absolute right-0 mt-1 w-48 bg-dark-800 border border-dark-700 rounded-lg shadow-lg py-1 z-50 top-full"
+                    data-menu-dropdown
+                    @click.stop
+                  >
+                    <button
+                      @click="
+                        () => {
+                          updateStatus(connection.id, 'Active')
+                          activeAppStatusMenu = null
+                        }
+                      "
+                      :class="[
+                        'w-full px-4 py-2 text-sm text-left flex items-center gap-2 hover:bg-dark-700 transition-colors',
+                        connection.status === 'Active' ? 'text-primary-400' : 'text-gray-300',
+                      ]"
+                    >
+                      <UIcon name="heroicons:check-circle" class="w-4 h-4" />
+                      Active
+                    </button>
+                    <button
+                      @click="
+                        () => {
+                          updateStatus(connection.id, 'Inactive')
+                          activeAppStatusMenu = null
+                        }
+                      "
+                      :class="[
+                        'w-full px-4 py-2 text-sm text-left flex items-center gap-2 hover:bg-dark-700 transition-colors',
+                        connection.status === 'Inactive' ? 'text-primary-400' : 'text-gray-300',
+                      ]"
+                    >
+                      <UIcon name="heroicons:minus-circle" class="w-4 h-4" />
+                      Inactive
+                    </button>
+                    <button
+                      @click="
+                        () => {
+                          updateStatus(connection.id, 'Expired')
+                          activeAppStatusMenu = null
+                        }
+                      "
+                      :class="[
+                        'w-full px-4 py-2 text-sm text-left flex items-center gap-2 hover:bg-dark-700 transition-colors',
+                        connection.status === 'Expired' ? 'text-primary-400' : 'text-gray-300',
+                      ]"
+                    >
+                      <UIcon name="heroicons:clock" class="w-4 h-4" />
+                      Expired
+                    </button>
+                    <button
+                      @click="
+                        () => {
+                          updateStatus(connection.id, 'Failed')
+                          activeAppStatusMenu = null
+                        }
+                      "
+                      :class="[
+                        'w-full px-4 py-2 text-sm text-left flex items-center gap-2 hover:bg-dark-700 transition-colors',
+                        connection.status === 'Failed' ? 'text-primary-400' : 'text-gray-300',
+                      ]"
+                    >
+                      <UIcon name="heroicons:exclamation-circle" class="w-4 h-4" />
+                      Failed
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Edit Icon -->
+                <AppTooltip text="Edit connection">
+                  <UButton
+                    @click="editConnection(connection)"
+                    variant="ghost"
+                    color="gray"
+                    icon="heroicons:pencil-square"
+                    size="sm"
+                  />
+                </AppTooltip>
+
+                <!-- Delete Icon -->
+                <AppTooltip text="Delete connection">
+                  <UButton
+                    @click="deleteApplication(connection.id)"
+                    variant="ghost"
+                    color="red"
+                    icon="heroicons:trash-20-solid"
+                    size="sm"
+                  />
+                </AppTooltip>
               </div>
             </div>
+
+            <!-- Connection Details -->
+            <div class="text-xs text-gray-400 space-y-2 bg-dark-700/50 rounded-lg p-3">
+              <div class="flex justify-between items-start">
+                <span class="text-gray-500 font-medium">Client ID:</span>
+                <span class="font-mono text-gray-300 break-all text-right ml-4">{{
+                  maskSensitiveData(connection.client_id)
+                }}</span>
+              </div>
+              <div v-if="connection.api_key" class="flex justify-between items-start">
+                <span class="text-gray-500 font-medium">API Key:</span>
+                <span class="font-mono text-gray-300 break-all text-right ml-4">{{
+                  maskSensitiveData(connection.api_key)
+                }}</span>
+              </div>
+              <div v-if="connection.login_url" class="flex justify-between items-start">
+                <span class="text-gray-500 font-medium">Login URL:</span>
+                <span class="font-mono text-gray-300 break-all text-right ml-4">{{
+                  connection.login_url
+                }}</span>
+              </div>
+            </div>
+          </div>
           </div>
         </div>
       </div>
@@ -551,40 +603,30 @@ const applicationForm = ref({
   login_url: '',
 })
 
-// Transform integrations data for UI - grouping by application
+// Transform grouped integrations for UI display
 const applicationsList = computed(() => {
-  if (!integrations.value || integrations.value.length === 0) {
-    return []
-  }
+  const store = useOrganizationIntegrationsStore()
+  const grouped = store.getGroupedIntegrations
 
-  // Group by provider for display
-  const grouped = new Map<string, any>()
-
-  integrations.value.forEach((integration) => {
-    const key = `${integration.provider_id}-${integration.agent_id}`
-    if (!grouped.has(key)) {
-      grouped.set(key, {
-        id: integration.id,
-        name: integration.connection_name,
-        module: integration.module_name || integration.module_id,
-        provider: integration.provider_name || integration.provider_id,
-        status:
-          integration.status === 'active'
-            ? 'Active'
-            : integration.status === 'inactive'
-              ? 'Inactive'
-              : 'Pending',
-        client_id: integration.client_id,
-        client_secret: '', // Don't expose
-        api_key: integration.api_key,
-        login_url: integration.login_url,
-        integrationData: integration,
-        connections: [],
-      })
-    }
-  })
-
-  return Array.from(grouped.values())
+  return grouped.map((group) => ({
+    id: `${group.provider_id}-${group.agent_id}-${group.module_id}`,
+    provider: group.provider_name,
+    agent: group.agent_name,
+    module: group.module_name,
+    provider_id: group.provider_id,
+    agent_id: group.agent_id,
+    module_id: group.module_id,
+    connections: group.connections.map((conn) => ({
+      ...conn,
+      status: conn.status === 'active'
+        ? 'Active'
+        : conn.status === 'inactive'
+          ? 'Inactive'
+          : conn.status === 'expired'
+          ? 'Expired'
+          : 'Failed',
+    })),
+  }))
 })
 
 // Dynamic tabs based on available agents (already sorted with HRMS first in store)
@@ -605,7 +647,7 @@ const filteredApplications = computed(() => {
   }
 
   // Filter by agent_id based on selected tab
-  return applicationsList.value.filter((app) => app.integrationData?.agent_id === selectedTab.value)
+  return applicationsList.value.filter((group) => group.agent_id === selectedTab.value)
 })
 
 // Filter modules based on selected agent
@@ -762,7 +804,7 @@ const saveApplication = async () => {
       api_key: applicationForm.value.api_key,
       access_token: applicationForm.value.access_token,
       login_url: applicationForm.value.login_url,
-      status: 'pending' as const,
+      status: 'active' as const,
     }
 
     let result
@@ -805,17 +847,58 @@ const editApplication = (app: any) => {
   showApplicationModal.value = true
 }
 
+const openAddConnectionModal = (group: any) => {
+  editingAppId.value = null
+  // Pre-fill with the integration's provider/agent/module
+  applicationForm.value = {
+    agent: group.agent_name || group.agent,
+    agent_id: group.agent_id,
+    module: group.module_name || group.module,
+    module_id: group.module_id,
+    provider: group.provider_name || group.provider,
+    provider_id: group.provider_id,
+    name: '',
+    connection_name: '',
+    client_id: '',
+    client_secret: '',
+    api_key: '',
+    access_token: '',
+    login_url: '',
+  }
+  showApplicationModal.value = true
+}
+
+const editConnection = (connection: any) => {
+  editingAppId.value = connection.id
+  applicationForm.value = {
+    agent: connection.agent_name || '',
+    agent_id: connection.agent_id || '',
+    module: connection.module_name || '',
+    module_id: connection.module_id || '',
+    provider: connection.provider_name || '',
+    provider_id: connection.provider_id || '',
+    name: connection.connection_name || '',
+    connection_name: connection.connection_name || '',
+    client_id: connection.client_id || '',
+    client_secret: '',
+    api_key: connection.api_key || '',
+    access_token: connection.access_token || '',
+    login_url: connection.login_url || '',
+  }
+  showApplicationModal.value = true
+}
+
 const deleteApplication = async (id: string) => {
-  if (!confirm('Are you sure you want to delete this application?')) {
+  if (!confirm('Are you sure you want to delete this connection?')) {
     return
   }
 
   try {
     const result = await deleteIntegration(id)
     if (result.success) {
-      showSuccess('Integration deleted successfully')
+      showSuccess('Connection deleted successfully')
     } else {
-      showError(result.message || 'Failed to delete integration')
+      showError(result.message || 'Failed to delete connection')
     }
   } catch (err) {
     showError('Failed to delete integration')
@@ -826,7 +909,7 @@ const updateStatus = async (appId: string, status: string) => {
   try {
     const result = await updateIntegrationStatus(
       appId,
-      status.toLowerCase() as 'active' | 'inactive' | 'pending',
+      status.toLowerCase() as 'active' | 'inactive' | 'expired' | 'failed',
     )
     if (result.success) {
       showSuccess('Status updated successfully')

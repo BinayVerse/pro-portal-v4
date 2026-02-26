@@ -8,6 +8,7 @@ import type {
   UpdateIntegrationPayload,
   IntegrationRelationships,
   ApiResponse,
+  GroupedIntegration,
 } from './types'
 import { useNotification } from '~/composables/useNotification'
 
@@ -99,6 +100,41 @@ export const useOrganizationIntegrationsStore = defineStore('organizationIntegra
       // Get intersection - providers available for both agent and module
       const intersection = providersForAgent.filter((p) => providersForModule.includes(p))
       return state.providers.filter((p) => intersection.includes(p.id))
+    },
+
+    // Get grouped integrations (by provider/agent/module)
+    getGroupedIntegrations: (state): GroupedIntegration[] => {
+      const grouped = new Map<string, GroupedIntegration>()
+
+      state.integrations.forEach((integration) => {
+        const key = `${integration.provider_id}|${integration.agent_id}|${integration.module_id}`
+
+        if (!grouped.has(key)) {
+          grouped.set(key, {
+            provider_id: integration.provider_id,
+            agent_id: integration.agent_id,
+            module_id: integration.module_id,
+            provider_name: integration.provider_name || '',
+            provider_code: integration.provider_code || '',
+            agent_name: integration.agent_name || '',
+            agent_code: integration.agent_code || '',
+            module_name: integration.module_name || '',
+            module_code: integration.module_code || '',
+            connections: [],
+          })
+        }
+
+        grouped.get(key)!.connections.push(integration)
+      })
+
+      return Array.from(grouped.values()).sort((a, b) => {
+        // Sort by provider name, then agent name, then module name
+        const providerSort = a.provider_name.localeCompare(b.provider_name)
+        if (providerSort !== 0) return providerSort
+        const agentSort = a.agent_name.localeCompare(b.agent_name)
+        if (agentSort !== 0) return agentSort
+        return a.module_name.localeCompare(b.module_name)
+      })
     },
   },
 

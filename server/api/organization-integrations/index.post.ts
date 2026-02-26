@@ -80,7 +80,7 @@ export default defineEventHandler(async (event) => {
         base_url: body.base_url || null,
         login_url: body.login_url || null,
         metadata_json: body.metadata_json || {},
-        status: body.status || 'pending',
+        status: body.status || 'active',
         hrms_system: body.hrms_system,
         is_hrms: body.is_hrms
       }
