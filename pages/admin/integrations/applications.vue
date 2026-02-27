@@ -599,7 +599,7 @@ useHead({
   title: 'Applications - Admin',
 })
 
-const { showSuccess, showError } = useNotification()
+const { showSuccess, showError, showInfo } = useNotification()
 
 // Use the organization integrations composable
 const {
@@ -633,6 +633,7 @@ const expandedRows = ref<string[]>([])
 const activeAppStatusMenu = ref<string | null>(null)
 const showApplicationClientSecret = ref(false)
 const showApplicationApiKey = ref(false)
+const originalEditSnapshot = ref<any>(null)
 
 // Form data
 const applicationForm = ref({
@@ -657,7 +658,7 @@ const applicationsList = computed(() => {
   const grouped = store.getGroupedIntegrations
 
   return grouped.map((group) => ({
-    id: `${group.provider_id}-${group.agent_id}-${group.module_id}`,
+    id: `${group.provider_id}-${group.agent_id}`,
     provider: group.provider_name,
     agent: group.agent_name,
     module: group.module_name,
@@ -748,23 +749,21 @@ const editGroup = async (group: any) => {
   editingAppId.value = group.id
 
   const firstConnection = group.connections[0]
-
   const decrypted = await decryptIntegrationForDisplay(firstConnection)
+
+  const moduleIds = group.connections.map((c: any) => c.module_id)
 
   applicationForm.value = {
     agent: group.agent,
     agent_id: group.agent_id,
     provider: group.provider,
     provider_id: group.provider_id,
-
-    module_ids: group.connections.map((c: any) => c.module_id),
+    module_ids: [...moduleIds],
     modules: group.connections.map((c: any) => ({
       id: c.module_id,
       name: c.module_name,
     })),
-
-    moduleConnectionNames: {}, // can be removed fully later
-
+    moduleConnectionNames: {},
     name: '',
     client_id: decrypted.client_id || '',
     client_secret: decrypted.client_secret || '',
@@ -773,7 +772,35 @@ const editGroup = async (group: any) => {
     login_url: decrypted.login_url || '',
   }
 
+  // 🔥 Save original snapshot
+  originalEditSnapshot.value = {
+    module_ids: [...moduleIds].sort(),
+    client_id: decrypted.client_id || '',
+    client_secret: decrypted.client_secret || '',
+    api_key: decrypted.api_key || '',
+    access_token: decrypted.access_token || '',
+    login_url: decrypted.login_url || '',
+  }
+
   showApplicationModal.value = true
+}
+
+const hasChanges = () => {
+  if (!originalEditSnapshot.value) return true
+
+  const currentModules = [...applicationForm.value.module_ids].sort()
+
+  const sameModules =
+    JSON.stringify(currentModules) === JSON.stringify(originalEditSnapshot.value.module_ids)
+
+  const sameCredentials =
+    applicationForm.value.client_id === originalEditSnapshot.value.client_id &&
+    applicationForm.value.client_secret === originalEditSnapshot.value.client_secret &&
+    applicationForm.value.api_key === originalEditSnapshot.value.api_key &&
+    applicationForm.value.access_token === originalEditSnapshot.value.access_token &&
+    applicationForm.value.login_url === originalEditSnapshot.value.login_url
+
+  return !(sameModules && sameCredentials)
 }
 
 const getAggregateStatus = (connections: any[]) => {
@@ -959,6 +986,10 @@ const saveApplication = async () => {
 
     // Create or update all integrations
     if (editingAppId.value) {
+      if (!hasChanges()) {
+        showInfo('Nothing to update')
+        return
+      }
       const group = filteredApplications.value.find((g) => g.id === editingAppId.value)
 
       if (!group) return
