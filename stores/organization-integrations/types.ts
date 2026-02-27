@@ -113,13 +113,14 @@ export interface IntegrationRelationships {
 export interface GroupedIntegration {
   provider_id: string
   agent_id: string
-  module_id: string
+  module_id?: string // Deprecated: kept for backward compatibility
   provider_name: string
   provider_code: string
   agent_name: string
   agent_code: string
-  module_name: string
-  module_code: string
+  module_name?: string // Deprecated: kept for backward compatibility
+  module_code?: string // Deprecated: kept for backward compatibility
+  modules?: Array<{ id: string; name: string; code: string }> // All modules for this provider-agent combination
   connections: OrganizationIntegration[]
 }
 

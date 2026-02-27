@@ -116,7 +116,7 @@
                     <!-- Separator -->
                     <span
                       v-if="index !== group.connections.length - 1"
-                      class="hidden sm:inline mx-2 text-gray-500"
+                      class="hidden sm:inline mx-2"
                     >
                       •
                     </span>
@@ -661,10 +661,11 @@ const applicationsList = computed(() => {
     id: `${group.provider_id}-${group.agent_id}`,
     provider: group.provider_name,
     agent: group.agent_name,
-    module: group.module_name,
+    module: group.modules?.[0]?.name, // For backward compatibility, show first module
+    modules: group.modules || [], // All modules for this provider-agent combo
     provider_id: group.provider_id,
     agent_id: group.agent_id,
-    module_id: group.module_id,
+    module_id: group.modules?.[0]?.id, // For backward compatibility
     connections: group.connections.map((conn) => ({
       ...conn,
       status:
