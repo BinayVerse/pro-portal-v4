@@ -41,7 +41,7 @@ export default defineEventHandler(async (event) => {
     // Get current integration to verify ownership and get provider_id and other data
     const currentRes = await query(
       `SELECT
-        provider_id, connection_name, client_id, client_secret, api_key, access_token,
+        provider_id, client_id, client_secret, api_key, access_token,
         refresh_token, token_expiry, base_url, login_url, metadata_json, status
        FROM public.organization_integrations
        WHERE id = $1 AND organization_id = $2`,

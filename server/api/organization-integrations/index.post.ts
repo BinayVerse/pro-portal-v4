@@ -34,9 +34,9 @@ export default defineEventHandler(async (event) => {
 
     // Read request body
     const body = await readBody(event)
-    
+
     // Validate required fields
-    const requiredFields = ['provider_id', 'agent_id', 'module_id', 'connection_name', 'client_id']
+    const requiredFields = ['provider_id', 'agent_id', 'module_id', 'client_id']
     for (const field of requiredFields) {
       if (!body[field]) {
         setResponseStatus(event, 400)
@@ -65,7 +65,6 @@ export default defineEventHandler(async (event) => {
 
     // Create integration using helper function
     const integrationData = {
-      connection_name: body.connection_name,
       client_id: body.client_id,
       client_secret: body.client_secret || null,
       api_key: body.api_key || null,

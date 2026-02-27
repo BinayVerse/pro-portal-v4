@@ -44,7 +44,7 @@ export default defineEventHandler(async (event) => {
     // Get current integration to verify ownership and get all current values
     const currentRes = await query(
       `SELECT
-        provider_id, connection_name, client_id, client_secret, api_key, access_token,
+        provider_id, client_id, client_secret, api_key, access_token,
         refresh_token, token_expiry, base_url, login_url, metadata_json,
         status
        FROM public.organization_integrations
@@ -63,7 +63,6 @@ export default defineEventHandler(async (event) => {
     // Merge current values with provided updates
     // This prevents null constraint violations when partially updating (e.g., status only)
     const mergedData = {
-      connection_name: body.connection_name ?? currentData.connection_name,
       client_id: body.client_id ?? currentData.client_id,
       client_secret: body.client_secret ?? currentData.client_secret,
       api_key: body.api_key ?? currentData.api_key,
@@ -97,7 +96,7 @@ export default defineEventHandler(async (event) => {
 
     if (body.status && Object.keys(body).length === 1) {
       const statusLabel = body.status.charAt(0).toUpperCase() + body.status.slice(1)
-      message = `${currentData.connection_name}: Status updated to ${statusLabel}`
+      message = `Integration Status updated to ${statusLabel}`
       action = 'status_change'
     }
 

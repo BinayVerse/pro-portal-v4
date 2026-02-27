@@ -975,7 +975,6 @@ const saveApplication = async () => {
       provider_id: applicationForm.value.provider_id,
       agent_id: applicationForm.value.agent_id,
       module_id: moduleId,
-      connection_name: applicationForm.value.moduleConnectionNames[moduleId],
       client_id: applicationForm.value.client_id,
       client_secret: applicationForm.value.client_secret,
       api_key: applicationForm.value.api_key,
@@ -1033,7 +1032,6 @@ const saveApplication = async () => {
           provider_id: applicationForm.value.provider_id,
           agent_id: applicationForm.value.agent_id,
           module_id: moduleId,
-          connection_name: '', // optional now
           client_id: applicationForm.value.client_id,
           client_secret: applicationForm.value.client_secret,
           api_key: applicationForm.value.api_key,
@@ -1058,28 +1056,6 @@ const saveApplication = async () => {
   } finally {
     isSavingApplication.value = false
   }
-}
-
-const editApplication = (app: any) => {
-  editingAppId.value = app.integrationData?.id || app.id
-  applicationForm.value = {
-    agent: app.integrationData?.agent_name || '',
-    agent_id: app.integrationData?.agent_id || '',
-    module_ids: [app.integrationData?.module_id],
-    modules: [{ id: app.integrationData?.module_id, name: app.integrationData?.module_name || '' }],
-    moduleConnectionNames: {
-      [app.integrationData?.module_id]: app.integrationData?.connection_name || '',
-    },
-    provider: app.integrationData?.provider_name || '',
-    provider_id: app.integrationData?.provider_id || '',
-    name: app.name || '',
-    client_id: app.integrationData?.client_id || '',
-    client_secret: '',
-    api_key: app.integrationData?.api_key || '',
-    access_token: app.integrationData?.access_token || '',
-    login_url: app.integrationData?.login_url || '',
-  }
-  showApplicationModal.value = true
 }
 
 const deleteGroup = async (group: any) => {
