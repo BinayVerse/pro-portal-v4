@@ -328,6 +328,27 @@
       <UButton @click="openAddApplicationModal" icon="heroicons:plus"> Add Application </UButton>
     </div>
 
+    <!-- Delete Confirmation Modal -->
+    <ConfirmPopup
+      :is-open="showDeleteConfirmModal"
+      type="danger"
+      title="Delete Integration"
+      :message="`Are you sure you want to delete this integration and all its ${groupToDelete?.connections?.length || 0} connection(s)?`"
+      :details="`${groupToDelete?.provider} - ${groupToDelete?.agent}`"
+      :confirm-text="isDeletingGroup ? 'Deleting...' : 'Delete'"
+      cancel-text="Cancel"
+      :loading="isDeletingGroup"
+      @confirm="confirmDeleteGroup"
+      @update:isOpen="
+        (value) => {
+          if (!value) {
+            showDeleteConfirmModal = false
+            groupToDelete = null
+          }
+        }
+      "
+    />
+
     <!-- Add/Edit Application Modal -->
     <UModal v-model="showApplicationModal" size="lg" prevent-close>
       <div class="p-6 space-y-4">
@@ -589,6 +610,8 @@
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useOrganizationIntegrations } from '~/composables/useOrganizationIntegrations'
 import { useNotification } from '~/composables/useNotification'
+import ConfirmPopup from '~/components/ui/ConfirmPopup.vue'
+import { useOrganizationIntegrationsStore } from '~/stores/organization-integrations'
 
 definePageMeta({
   layout: 'admin',
@@ -634,6 +657,9 @@ const activeAppStatusMenu = ref<string | null>(null)
 const showApplicationClientSecret = ref(false)
 const showApplicationApiKey = ref(false)
 const originalEditSnapshot = ref<any>(null)
+const showDeleteConfirmModal = ref(false)
+const groupToDelete = ref<any>(null)
+const isDeletingGroup = ref(false)
 
 // Form data
 const applicationForm = ref({
@@ -951,6 +977,22 @@ const closeApplicationModal = () => {
   showApplicationApiKey.value = false
 }
 
+const isProviderAlreadyAdded = (): boolean => {
+  // Only check for duplicates when creating new (not editing)
+  if (editingAppId.value) {
+    return false
+  }
+
+  // Check if this provider + agent combination already exists
+  const existingGroup = applicationsList.value.find(
+    (group) =>
+      group.provider_id === applicationForm.value.provider_id &&
+      group.agent_id === applicationForm.value.agent_id,
+  )
+
+  return !!existingGroup
+}
+
 const saveApplication = async () => {
   isSavingApplication.value = true
   clearMessages()
@@ -966,23 +1008,22 @@ const saveApplication = async () => {
       return
     }
 
+    // Check for duplicate provider
+    if (isProviderAlreadyAdded()) {
+      showError(
+        'This provider is already added for this agent. You can edit the existing integration instead.',
+      )
+      return
+    }
+
     if (!applicationForm.value.client_id) {
       showError('Please fill in all required credential fields')
       return
     }
 
-    // Create a payload for each selected module
-    const payloads = applicationForm.value.module_ids.map((moduleId) => ({
-      provider_id: applicationForm.value.provider_id,
-      agent_id: applicationForm.value.agent_id,
-      module_id: moduleId,
-      client_id: applicationForm.value.client_id,
-      client_secret: applicationForm.value.client_secret,
-      api_key: applicationForm.value.api_key,
-      access_token: applicationForm.value.access_token,
-      login_url: applicationForm.value.login_url,
-      status: 'active' as const,
-    }))
+    // Get provider name for hrms_system
+    const selectedProvider = providers.value.find((p) => p.id === applicationForm.value.provider_id)
+    const hrmsSystem = selectedProvider?.name || applicationForm.value.provider_id
 
     // Create or update all integrations
     if (editingAppId.value) {
@@ -1006,74 +1047,133 @@ const saveApplication = async () => {
       // 🟢 Modules added
       const addedModules = selectedModuleIds.filter((id: string) => !existingModuleIds.includes(id))
 
-      // 1️⃣ Delete removed modules
-      for (const moduleId of removedModules) {
-        const connectionToDelete = existingConnections.find((c: any) => c.module_id === moduleId)
-        if (connectionToDelete) {
-          await deleteIntegration(connectionToDelete.id)
+      // 🟡 Modules that remain (need credential updates)
+      const remainingConnections = existingConnections.filter(
+        (c: any) => !removedModules.includes(c.module_id),
+      )
+
+      // Batch operations: delete + update + create in single API calls
+      const store = useOrganizationIntegrationsStore()
+
+      // 1️⃣ Batch delete removed modules (single API call)
+      if (removedModules.length > 0) {
+        const idsToDelete = existingConnections
+          .filter((c: any) => removedModules.includes(c.module_id))
+          .map((c: any) => c.id)
+
+        const deleteResult = await store.batchDeleteIntegrations(idsToDelete)
+        if (!deleteResult.success) {
+          showError('Failed to delete removed modules')
+          return
         }
       }
 
-      // 2️⃣ Update existing modules (credentials update)
-      for (const connection of existingConnections) {
-        if (!removedModules.includes(connection.module_id)) {
-          await updateIntegration(connection.id, {
-            client_id: applicationForm.value.client_id,
-            client_secret: applicationForm.value.client_secret,
-            api_key: applicationForm.value.api_key,
-            access_token: applicationForm.value.access_token,
-            login_url: applicationForm.value.login_url,
-          })
+      // 2️⃣ Batch update existing modules (single API call)
+      if (remainingConnections.length > 0) {
+        const updatePayloads = remainingConnections.map((connection) => ({
+          integrationId: connection.id,
+          providerId: applicationForm.value.provider_id,
+          clientId: applicationForm.value.client_id,
+          clientSecret: applicationForm.value.client_secret,
+          apiKey: applicationForm.value.api_key,
+          accessToken: applicationForm.value.access_token,
+          loginUrl: applicationForm.value.login_url,
+          hrmsSystem: hrmsSystem,
+          isHrms: true,
+        }))
+
+        const updateResult = await store.batchUpdateIntegrations(updatePayloads)
+        if (!updateResult.success) {
+          showError('Failed to update existing modules')
+          return
         }
       }
 
-      // 3️⃣ Create newly added modules
-      for (const moduleId of addedModules) {
-        await createIntegration({
-          provider_id: applicationForm.value.provider_id,
-          agent_id: applicationForm.value.agent_id,
-          module_id: moduleId,
-          client_id: applicationForm.value.client_id,
-          client_secret: applicationForm.value.client_secret,
-          api_key: applicationForm.value.api_key,
-          access_token: applicationForm.value.access_token,
-          login_url: applicationForm.value.login_url,
-          status: 'active',
-        })
+      // 3️⃣ Batch create newly added modules (single API call)
+      if (addedModules.length > 0) {
+        const createPayloads = addedModules.map((moduleId) => ({
+          providerId: applicationForm.value.provider_id,
+          agentId: applicationForm.value.agent_id,
+          moduleId: moduleId,
+          clientId: applicationForm.value.client_id,
+          clientSecret: applicationForm.value.client_secret,
+          apiKey: applicationForm.value.api_key,
+          accessToken: applicationForm.value.access_token,
+          loginUrl: applicationForm.value.login_url,
+          status: 'active' as const,
+          hrmsSystem: hrmsSystem,
+          isHrms: true,
+        }))
+
+        const createResult = await store.batchCreateIntegrations(createPayloads)
+        if (!createResult.success) {
+          showError('Failed to create new modules')
+          return
+        }
       }
+
+      showSuccess('Integration updated successfully')
     } else {
-      // Create new integrations for each module
-      for (const payload of payloads) {
-        const result = await createIntegration(payload)
-        if (!result.success) {
-          return // Stop on first error
-        }
+      // Create new integrations for all modules in single batch API call
+      const store = useOrganizationIntegrationsStore()
+
+      const createPayloads = applicationForm.value.module_ids.map((moduleId) => ({
+        providerId: applicationForm.value.provider_id,
+        agentId: applicationForm.value.agent_id,
+        moduleId: moduleId,
+        clientId: applicationForm.value.client_id,
+        clientSecret: applicationForm.value.client_secret,
+        apiKey: applicationForm.value.api_key,
+        accessToken: applicationForm.value.access_token,
+        loginUrl: applicationForm.value.login_url,
+        status: 'active' as const,
+        hrmsSystem: hrmsSystem,
+        isHrms: true,
+      }))
+
+      const createResult = await store.batchCreateIntegrations(createPayloads)
+      if (!createResult.success) {
+        showError('Failed to create integration')
+        return
       }
     }
 
     // Close modal after successful creation of all integrations
     closeApplicationModal()
-    // Message will be displayed through store watchers
   } finally {
     isSavingApplication.value = false
   }
 }
 
-const deleteGroup = async (group: any) => {
-  if (!confirm('Are you sure you want to delete this integration and all its connections?')) {
-    return
-  }
+const deleteGroup = (group: any) => {
+  groupToDelete.value = group
+  showDeleteConfirmModal.value = true
+}
 
+const confirmDeleteGroup = async () => {
+  if (!groupToDelete.value) return
+
+  isDeletingGroup.value = true
   try {
-    const connections = group.connections
+    const store = useOrganizationIntegrationsStore()
+    const connections = groupToDelete.value.connections
+    const connectionIds = connections.map((connection) => connection.id)
 
-    // Delete all connections in the group
-    const deletePromises = connections.map((connection) => deleteIntegration(connection.id))
+    // Batch delete all connections in the group with single API call
+    const result = await store.batchDeleteIntegrations(connectionIds)
 
-    await Promise.all(deletePromises)
+    if (!result.success) {
+      showError('Failed to delete integration group')
+      return
+    }
+
     // Success/error messages will be displayed through store watchers
+    showDeleteConfirmModal.value = false
+    groupToDelete.value = null
   } catch (err) {
     showError('Unexpected error occurred during deletion')
+  } finally {
+    isDeletingGroup.value = false
   }
 }
 
@@ -1091,15 +1191,29 @@ const updateStatus = async (appId: string, status: string) => {
 
 const updateGroupStatus = async (group: any, status: string) => {
   try {
+    const store = useOrganizationIntegrationsStore()
     const connections = group.connections
     const statusLower = status.toLowerCase() as 'active' | 'inactive' | 'expired' | 'failed'
 
-    // Update all connections in the group
-    const updatePromises = connections.map((connection) =>
-      updateIntegrationStatus(connection.id, statusLower),
-    )
+    // Batch update all connections in the group with single API call
+    const updatePayloads = connections.map((connection) => ({
+      integrationId: connection.id,
+      providerId: group.provider_id,
+      clientId: connection.client_id,
+      clientSecret: connection.client_secret,
+      apiKey: connection.api_key,
+      accessToken: connection.access_token,
+      loginUrl: connection.login_url,
+      status: statusLower,
+    }))
 
-    await Promise.all(updatePromises)
+    const result = await store.batchUpdateIntegrations(updatePayloads)
+
+    if (!result.success) {
+      showError('Failed to update group status')
+      return
+    }
+
     // Message will be displayed through store watchers
     activeAppStatusMenu.value = null
   } catch (err) {

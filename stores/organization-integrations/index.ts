@@ -490,6 +490,189 @@ export const useOrganizationIntegrationsStore = defineStore('organizationIntegra
       }
     },
 
+    // Batch create integrations - single API call for multiple modules
+    async batchCreateIntegrations(
+      payloads: Array<{
+        providerId: string
+        agentId: string
+        moduleId: string
+        clientId: string
+        clientSecret?: string
+        apiKey?: string
+        accessToken?: string
+        refreshToken?: string
+        tokenExpiry?: string
+        baseUrl?: string
+        loginUrl?: string
+        metadataJson?: Record<string, any>
+        status?: 'active' | 'inactive' | 'expired' | 'failed'
+        hrmsSystem?: string
+        isHrms?: boolean
+      }>
+    ) {
+      this.loading = true
+      this.error = null
+      try {
+        // Encrypt sensitive fields in all payloads
+        const encryptedPayloads = await Promise.all(
+          payloads.map((payload) =>
+            encryptSensitiveFields(payload, ['clientSecret', 'apiKey', 'accessToken', 'refreshToken']),
+          ),
+        )
+
+        // Map camelCase to snake_case for API
+        const batchData = {
+          action: 'create',
+          integrations: encryptedPayloads.map((payload) => ({
+            providerId: payload.providerId,
+            agentId: payload.agentId,
+            moduleId: payload.moduleId,
+            clientId: payload.clientId,
+            clientSecret: payload.clientSecret || null,
+            apiKey: payload.apiKey || null,
+            accessToken: payload.accessToken || null,
+            refreshToken: payload.refreshToken || null,
+            tokenExpiry: payload.tokenExpiry || null,
+            baseUrl: payload.baseUrl || null,
+            loginUrl: payload.loginUrl || null,
+            metadataJson: payload.metadataJson || {},
+            status: payload.status || 'active',
+            hrmsSystem: payload.hrmsSystem,
+            isHrms: payload.isHrms,
+          })),
+        }
+
+        const response = await $fetch<ApiResponse<{ ids: string[]; count: number }>>(
+          '/api/organization-integrations/batch',
+          {
+            method: 'POST',
+            headers: this.getAuthHeaders(),
+            body: batchData,
+          }
+        )
+
+        if (response.status === 'success') {
+          this.setSuccessMessage(response.message || 'Integrations created successfully')
+          // Refresh the list
+          await this.fetchIntegrations()
+          return { success: true, data: response.data }
+        } else {
+          throw new Error(response.message || 'Failed to create integrations')
+        }
+      } catch (error: any) {
+        const message = error?.data?.message || error?.message || 'Failed to create integrations'
+        this.setError(message)
+        return { success: false, message }
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Batch update integrations - single API call for multiple modules
+    async batchUpdateIntegrations(
+      updates: Array<{
+        integrationId: string
+        providerId: string
+        clientId: string
+        clientSecret?: string
+        apiKey?: string
+        accessToken?: string
+        refreshToken?: string
+        tokenExpiry?: string
+        baseUrl?: string
+        loginUrl?: string
+        metadataJson?: Record<string, any>
+        status?: 'active' | 'inactive' | 'expired' | 'failed'
+        hrmsSystem?: string
+        isHrms?: boolean
+      }>
+    ) {
+      this.loading = true
+      this.error = null
+      try {
+        // Encrypt sensitive fields in all updates
+        const encryptedUpdates = await Promise.all(
+          updates.map((update) =>
+            encryptSensitiveFields(update, ['clientSecret', 'apiKey', 'accessToken', 'refreshToken']),
+          ),
+        )
+
+        const batchData = {
+          action: 'update',
+          updates: encryptedUpdates.map((update) => ({
+            integrationId: update.integrationId,
+            providerId: update.providerId,
+            clientId: update.clientId,
+            clientSecret: update.clientSecret || null,
+            apiKey: update.apiKey || null,
+            accessToken: update.accessToken || null,
+            refreshToken: update.refreshToken || null,
+            tokenExpiry: update.tokenExpiry || null,
+            baseUrl: update.baseUrl || null,
+            loginUrl: update.loginUrl || null,
+            metadataJson: update.metadataJson || {},
+            status: update.status || 'active',
+            hrmsSystem: update.hrmsSystem,
+            isHrms: update.isHrms,
+          })),
+        }
+
+        const response = await $fetch<ApiResponse<{ count: number }>>('/api/organization-integrations/batch', {
+          method: 'POST',
+          headers: this.getAuthHeaders(),
+          body: batchData,
+        })
+
+        if (response.status === 'success') {
+          this.setSuccessMessage(response.message || 'Integrations updated successfully')
+          // Refresh the list
+          await this.fetchIntegrations()
+          return { success: true, data: response.data }
+        } else {
+          throw new Error(response.message || 'Failed to update integrations')
+        }
+      } catch (error: any) {
+        const message = error?.data?.message || error?.message || 'Failed to update integrations'
+        this.setError(message)
+        return { success: false, message }
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Batch delete integrations - single API call for multiple modules
+    async batchDeleteIntegrations(integrationIds: string[]) {
+      this.loading = true
+      this.error = null
+      try {
+        const batchData = {
+          action: 'delete',
+          integrationIds: integrationIds,
+        }
+
+        const response = await $fetch<ApiResponse<{ count: number }>>('/api/organization-integrations/batch', {
+          method: 'POST',
+          headers: this.getAuthHeaders(),
+          body: batchData,
+        })
+
+        if (response.status === 'success') {
+          this.setSuccessMessage(response.message || 'Integrations deleted successfully')
+          // Remove from local state
+          this.integrations = this.integrations.filter((i) => !integrationIds.includes(i.id))
+          return { success: true, data: response.data }
+        } else {
+          throw new Error(response.message || 'Failed to delete integrations')
+        }
+      } catch (error: any) {
+        const message = error?.data?.message || error?.message || 'Failed to delete integrations'
+        this.setError(message)
+        return { success: false, message }
+      } finally {
+        this.loading = false
+      }
+    },
+
     // Decrypt integration data for display (e.g., in edit form)
     // This decrypts only when needed, not on API fetch
     async decryptIntegrationForDisplay(
