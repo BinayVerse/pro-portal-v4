@@ -2,54 +2,7 @@ import { defineEventHandler, readBody, setResponseStatus } from 'h3'
 import { query } from '../../utils/db'
 import { CustomError } from '../../utils/custom.error'
 import jwt from 'jsonwebtoken'
-import {
-  batchCreateOrganizationIntegrations,
-  batchUpdateOrganizationIntegrations,
-  batchDeleteOrganizationIntegrations,
-  createIntegrationAuditLog,
-} from '../../utils/dbHelpers'
-
-interface BatchIntegration {
-  providerId: string
-  agentId: string
-  moduleId: string
-  clientId: string
-  clientSecret?: string
-  apiKey?: string
-  accessToken?: string
-  refreshToken?: string
-  tokenExpiry?: string
-  baseUrl?: string
-  loginUrl?: string
-  metadataJson?: Record<string, any>
-  status?: 'active' | 'inactive' | 'expired' | 'failed'
-  hrmsSystem?: string
-  isHrms?: boolean
-}
-
-interface BatchUpdateIntegration {
-  integrationId: string
-  providerId: string
-  clientId: string
-  clientSecret?: string
-  apiKey?: string
-  accessToken?: string
-  refreshToken?: string
-  tokenExpiry?: string
-  baseUrl?: string
-  loginUrl?: string
-  metadataJson?: Record<string, any>
-  status?: 'active' | 'inactive' | 'expired' | 'failed'
-  hrmsSystem?: string
-  isHrms?: boolean
-}
-
-interface BatchRequest {
-  action: 'create' | 'update' | 'delete'
-  integrations?: BatchIntegration[]
-  updates?: BatchUpdateIntegration[]
-  integrationIds?: string[]
-}
+import { createOrganizationIntegration, createIntegrationAuditLog } from '../../utils/dbHelpers'
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
@@ -80,182 +33,169 @@ export default defineEventHandler(async (event) => {
     const orgId = userOrgRow.rows[0].org_id
 
     // Read request body
-    const body: BatchRequest = await readBody(event)
+    const body = await readBody(event)
 
-    if (!body.action) {
+    // Validate modules array
+    if (!Array.isArray(body.modules) || body.modules.length === 0) {
       setResponseStatus(event, 400)
-      throw new CustomError('Missing required field: action', 400)
+      throw new CustomError('modules array is required and must not be empty', 400)
     }
 
-    if (body.action === 'create') {
-      if (!body.integrations || body.integrations.length === 0) {
+    // Validate required fields in payload
+    const requiredFields = ['provider_id', 'agent_id', 'client_id']
+    for (const field of requiredFields) {
+      if (!body[field]) {
         setResponseStatus(event, 400)
-        throw new CustomError('Missing integrations array for create action', 400)
+        throw new CustomError(`Missing required field: ${field}`, 400)
       }
+    }
 
-      // Validate each integration has required fields
-      for (const integration of body.integrations) {
-        if (!integration.providerId || !integration.agentId || !integration.moduleId || !integration.clientId) {
-          setResponseStatus(event, 400)
-          throw new CustomError('Missing required fields in integration: providerId, agentId, moduleId, clientId', 400)
-        }
-      }
+    // Validate foreign key references
+    const providerRes = await query('SELECT id FROM public.integration_providers WHERE id = $1', [body.provider_id])
+    if (!providerRes.rowCount) {
+      setResponseStatus(event, 404)
+      throw new CustomError('Provider not found', 404)
+    }
 
-      // Validate foreign key references for all integrations
-      for (const integration of body.integrations) {
-        const providerRes = await query('SELECT id FROM public.integration_providers WHERE id = $1', [
-          integration.providerId,
-        ])
-        if (!providerRes.rowCount) {
-          setResponseStatus(event, 404)
-          throw new CustomError(`Provider not found: ${integration.providerId}`, 404)
-        }
+    const agentRes = await query('SELECT id FROM public.integration_agents WHERE id = $1', [body.agent_id])
+    if (!agentRes.rowCount) {
+      setResponseStatus(event, 404)
+      throw new CustomError('Agent not found', 404)
+    }
 
-        const agentRes = await query('SELECT id FROM public.integration_agents WHERE id = $1', [integration.agentId])
-        if (!agentRes.rowCount) {
-          setResponseStatus(event, 404)
-          throw new CustomError(`Agent not found: ${integration.agentId}`, 404)
-        }
-
-        const moduleRes = await query('SELECT id FROM public.integration_modules WHERE id = $1', [integration.moduleId])
-        if (!moduleRes.rowCount) {
-          setResponseStatus(event, 404)
-          throw new CustomError(`Module not found: ${integration.moduleId}`, 404)
-        }
-      }
-
-      // Create batch integrations
-      const integrationDataList = body.integrations.map((integration) => ({
-        providerId: integration.providerId,
-        agentId: integration.agentId,
-        moduleId: integration.moduleId,
-        integrationData: {
-          client_id: integration.clientId,
-          client_secret: integration.clientSecret || null,
-          api_key: integration.apiKey || null,
-          access_token: integration.accessToken || null,
-          refresh_token: integration.refreshToken || null,
-          token_expiry: integration.tokenExpiry || null,
-          base_url: integration.baseUrl || null,
-          login_url: integration.loginUrl || null,
-          metadata_json: integration.metadataJson || {},
-          status: integration.status || 'active',
-          hrms_system: integration.hrmsSystem,
-          is_hrms: integration.isHrms,
-        },
-      }))
-
-      const result = await batchCreateOrganizationIntegrations(orgId, integrationDataList)
-
-      if (!result.success) {
-        setResponseStatus(event, 500)
-        throw new CustomError(result.error || 'Failed to create integrations', 500)
-      }
-
-      // Create audit logs for each created integration
-      for (let i = 0; i < result.ids!.length; i++) {
-        const integrationId = result.ids![i]
-        const integrationData = integrationDataList[i].integrationData
-
-        await createIntegrationAuditLog(integrationId, orgId, 'create', userId, event, undefined, integrationData)
-      }
-
-      setResponseStatus(event, 201)
-      return {
-        statusCode: 201,
-        status: 'success',
-        data: { ids: result.ids, count: result.ids!.length },
-        message: `${result.ids!.length} organization integrations created successfully`,
-      }
-    } else if (body.action === 'update') {
-      if (!body.updates || body.updates.length === 0) {
+    // Validate all modules exist and cast to string array
+    const modules = body.modules as string[]
+    for (const moduleId of modules) {
+      const moduleRes = await query('SELECT id FROM public.integration_modules WHERE id = $1', [moduleId])
+      if (!moduleRes.rowCount) {
         setResponseStatus(event, 400)
-        throw new CustomError('Missing updates array for update action', 400)
+        throw new CustomError(`Module not found: ${moduleId}`, 400)
       }
+    }
 
-      // Validate each update has required fields
-      for (const update of body.updates) {
-        if (!update.integrationId || !update.providerId || !update.clientId) {
-          setResponseStatus(event, 400)
-          throw new CustomError('Missing required fields in update: integrationId, providerId, clientId', 400)
+    // Common integration data for all modules
+    const integrationData = {
+      client_id: body.client_id,
+      client_secret: body.client_secret || null,
+      api_key: body.api_key || null,
+      access_token: body.access_token || null,
+      refresh_token: body.refresh_token || null,
+      token_expiry: body.token_expiry || null,
+      base_url: body.base_url || null,
+      login_url: body.login_url || null,
+      metadata_json: {
+        login_url: body.login_url || null,
+        base_url: body.base_url || null,
+        api_key: body.api_key || null,
+        ...(body.metadata_json || {})
+      },
+      status: body.status || 'active',
+      hrms_system: body.hrms_system,
+      is_hrms: body.is_hrms,
+      module_ids: modules
+    }
+
+    // Create integrations for all modules
+    const createdIds: string[] = []
+    const errors: Array<{ moduleId: string; error: string }> = []
+
+    for (const moduleId of modules) {
+      try {
+        // Check if this agent+module combination already exists for this provider
+        const duplicateRes = await query(
+          `SELECT id FROM public.organization_integrations
+           WHERE organization_id = $1 AND provider_id = $2 AND agent_id = $3 AND module_id = $4`,
+          [orgId, body.provider_id, body.agent_id, moduleId]
+        )
+
+        if (duplicateRes.rowCount > 0) {
+          errors.push({
+            moduleId: moduleId as string,
+            error: 'This agent and module combination already exists for this provider'
+          })
+          continue
         }
+        const result = await createOrganizationIntegration(
+          orgId,
+          body.provider_id,
+          body.agent_id,
+          moduleId,
+          integrationData,
+        )
+
+        if (result.success && result.id) {
+          const createdId = result.id as string
+          createdIds.push(createdId)
+
+          // Fetch created data for audit log
+          const createdDataRes = await query(
+            `SELECT
+              id, provider_id, module_id, client_id, client_secret, api_key, access_token,
+              refresh_token, token_expiry, base_url, login_url, metadata_json, status
+             FROM public.organization_integrations WHERE id = $1`,
+            [createdId]
+          )
+
+          const createdData = createdDataRes.rows[0] || integrationData
+
+          // Create audit log for creation
+          await createIntegrationAuditLog(
+            createdId,
+            orgId,
+            'create',
+            userId,
+            event,
+            undefined,
+            createdData
+          )
+        } else {
+          errors.push({ moduleId: moduleId as string, error: result.error || 'Failed to create integration' })
+        }
+      } catch (err: any) {
+        errors.push({ moduleId: moduleId as string, error: err.message || 'Unknown error' })
       }
+    }
 
-      // Create batch updates
-      const updateDataList = body.updates.map((update) => ({
-        integrationId: update.integrationId,
-        providerId: update.providerId,
-        integrationData: {
-          client_id: update.clientId,
-          client_secret: update.clientSecret || null,
-          api_key: update.apiKey || null,
-          access_token: update.accessToken || null,
-          refresh_token: update.refreshToken || null,
-          token_expiry: update.tokenExpiry || null,
-          base_url: update.baseUrl || null,
-          login_url: update.loginUrl || null,
-          metadata_json: update.metadataJson || {},
-          status: update.status || 'active',
-          hrms_system: update.hrmsSystem,
-          is_hrms: update.isHrms,
-        },
-      }))
-
-      const result = await batchUpdateOrganizationIntegrations(orgId, updateDataList)
-
-      if (!result.success) {
-        setResponseStatus(event, 500)
-        throw new CustomError(result.error || 'Failed to update integrations', 500)
-      }
-
-      // Create audit logs for each updated integration
-      for (const update of body.updates) {
-        await createIntegrationAuditLog(update.integrationId, orgId, 'update', userId, event, undefined, update)
-      }
-
+    // If all failed, return error
+    if (createdIds.length === 0) {
+      setResponseStatus(event, 500)
       return {
-        statusCode: 200,
-        status: 'success',
-        data: { count: body.updates.length },
-        message: `${body.updates.length} organization integrations updated successfully`,
+        statusCode: 500,
+        status: 'error',
+        message: 'Failed to create any integrations',
+        errors
       }
-    } else if (body.action === 'delete') {
-      if (!body.integrationIds || body.integrationIds.length === 0) {
-        setResponseStatus(event, 400)
-        throw new CustomError('Missing integrationIds array for delete action', 400)
-      }
+    }
 
-      const result = await batchDeleteOrganizationIntegrations(orgId, body.integrationIds)
-
-      if (!result.success) {
-        setResponseStatus(event, 500)
-        throw new CustomError(result.error || 'Failed to delete integrations', 500)
-      }
-
-      // Create audit logs for each deleted integration
-      for (const integrationId of body.integrationIds) {
-        await createIntegrationAuditLog(integrationId, orgId, 'delete', userId, event, undefined, {})
-      }
-
+    // If some failed, return partial success
+    if (errors.length > 0) {
+      setResponseStatus(event, 207) // Multi-Status
       return {
-        statusCode: 200,
-        status: 'success',
-        data: { count: body.integrationIds.length },
-        message: `${body.integrationIds.length} organization integrations deleted successfully`,
+        statusCode: 207,
+        status: 'partial_success',
+        data: { ids: createdIds },
+        message: `Created ${createdIds.length} out of ${body.modules.length} integrations`,
+        errors
       }
-    } else {
-      setResponseStatus(event, 400)
-      throw new CustomError('Invalid action. Must be one of: create, update, delete', 400)
+    }
+
+    // All succeeded
+    setResponseStatus(event, 201)
+    return {
+      statusCode: 201,
+      status: 'success',
+      data: { ids: createdIds },
+      message: `Integration(s) created successfully!`
     }
   } catch (error: any) {
-    console.error('Batch Organization Integration Error:', error)
+    console.error('Organization Integration Batch Create Error:', error)
 
     if (error instanceof CustomError) {
       setResponseStatus(event, error.statusCode)
       return {
         statusCode: error.statusCode,
         status: 'error',
-        message: error.message,
+        message: error.message
       }
     }
 
@@ -263,7 +203,7 @@ export default defineEventHandler(async (event) => {
     return {
       statusCode: 500,
       status: 'error',
-      message: 'Failed to process batch organization integrations',
+      message: 'Failed to create organization integrations'
     }
   }
 })

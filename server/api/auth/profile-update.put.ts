@@ -154,6 +154,13 @@ export default defineEventHandler(async (event) => {
                 );
             }
 
+            // 🔑 Create 'Common' department as system department for new organization
+            await query(
+                `INSERT INTO organization_departments (org_id, name, description, status, created_by, is_system)
+                 VALUES ($1, $2, $3, $4, $5, $6)`,
+                [orgId, 'Common', 'System department for unassigned documents', 'active', user_id, true]
+            );
+
             // Update user org
             await query(
                 `UPDATE users SET role_id = '1', org_id = $1, contact_number = $2 WHERE user_id = $3`,

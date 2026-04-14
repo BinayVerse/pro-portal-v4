@@ -458,17 +458,32 @@ export async function activateFreePlanForOrg(
 
 /**
  * Fields that exist in hrms_integration table
+ * Map: organization_integrations field name → hrms_integration column name
  */
-const HRMS_FIELDS = new Set([
-  'organization_id',
+const HRMS_FIELD_MAPPING: Record<string, string> = {
+  'client_id': 'client_id',
+  'client_secret': 'client_secret_encrypted',
+  'access_token': 'access_token',
+  'refresh_token': 'refresh_token_encrypted',
+  'token_expiry': 'token_expiry',
+  'base_url': 'base_url',
+  'status': 'status'
+}
+
+/**
+ * Fields from organization_integrations that have columns in hrms_integration
+ */
+const HRMS_COLUMN_FIELDS = new Set(Object.keys(HRMS_FIELD_MAPPING))
+
+/**
+ * Fields that should NOT go to metadata when syncing to hrms_integration
+ * (These are system fields or already handled elsewhere)
+ */
+const FIELDS_TO_EXCLUDE_FROM_METADATA = new Set([
+  'metadata_json',
+  'is_hrms',
   'hrms_system',
-  'client_id',
-  'client_secret_encrypted',
-  'access_token',
-  'refresh_token_encrypted',
-  'token_expiry',
-  'base_url',
-  'status'
+  'organization_id'
 ])
 
 /**
@@ -496,12 +511,13 @@ export async function createOrganizationIntegration(
       RETURNING id
     `
 
-    const metadata: Record<string, any> = integrationData.metadata_json || {}
+    // metadata for organization_integrations
+    const orgMetadata: Record<string, any> = {}
 
-    // Store hrms_system in metadata for reference on delete
     if (integrationData.hrms_system) {
-      metadata.hrms_system = integrationData.hrms_system
+      orgMetadata.hrms_system = integrationData.hrms_system
     }
+
 
     const orgIntegrationRes = await query(orgIntegrationSql, [
       orgId,
@@ -516,7 +532,7 @@ export async function createOrganizationIntegration(
       integrationData.token_expiry || null,
       integrationData.base_url || null,
       integrationData.login_url || null,
-      JSON.stringify(metadata),
+      JSON.stringify(orgMetadata),
       integrationData.status || 'active'
     ])
 
@@ -532,45 +548,54 @@ export async function createOrganizationIntegration(
 
     // If this is an HRMS provider or hrms_system is provided, insert/update in hrms_integration
     if (providerCode === 'hrms' || integrationData.is_hrms === true || integrationData.hrms_system) {
-      const hrmsData: Record<string, any> = {
+      // Build hrms_integration data by mapping organization_integrations fields
+      const hrmsData: Record<string, string> = {
         organization_id: orgId,
-        hrms_system: integrationData.hrms_system,
-        client_id: integrationData.client_id,
-        client_secret_encrypted: integrationData.client_secret,
-        access_token: integrationData.access_token,
-        refresh_token_encrypted: integrationData.refresh_token || null,
-        token_expiry: integrationData.token_expiry || null,
-        base_url: integrationData.base_url || null,
-        status: integrationData.status || 'active'
+        hrms_system: integrationData.hrms_system
       }
 
-      // Store fields not in hrms_integration in metadata
-      for (const [key, value] of Object.entries(integrationData)) {
-        if (!HRMS_FIELDS.has(key) && key !== 'metadata_json') {
-          metadata[key] = value
-        }
+      // Map fields that exist in hrms_integration table
+      for (const [orgIntField, hrmsColumn] of Object.entries(HRMS_FIELD_MAPPING)) {
+        const value = integrationData[orgIntField]
+        hrmsData[hrmsColumn] = value !== undefined ? value : null
       }
 
       const hrmsFields = Object.keys(hrmsData).filter(k => k !== 'organization_id')
-      const hrmsValues = hrmsFields.map((_, i) => `$${i + 2}`)
 
       const hrmsSql = `
         INSERT INTO public.hrms_integration (
-          organization_id, ${hrmsFields.join(', ')}
+          organization_id,
+          ${hrmsFields.join(', ')},
+          metadata_json
         )
-        VALUES ($1, ${hrmsValues.join(', ')})
+        VALUES (
+          $1,
+          ${hrmsFields.map((_, i) => `$${i + 2}`).join(', ')},
+          $${hrmsFields.length + 2}
+        )
         ON CONFLICT (organization_id, hrms_system)
         DO UPDATE SET
           ${hrmsFields.map(f => `${f} = EXCLUDED.${f}`).join(', ')},
-          updated_at = CURRENT_TIMESTAMP,
-          metadata_json = $${hrmsFields.length + 2}
+          metadata_json = EXCLUDED.metadata_json,
+          updated_at = CURRENT_TIMESTAMP
         RETURNING id
-      `
+        `
+
+      const hrmsMetadata = {
+        api_key: integrationData.api_key,
+        login_url: integrationData.login_url,
+        base_url: integrationData.base_url,
+        provider_id: providerId,
+        agent_id: agentId,
+        module_ids: integrationData.module_ids || [],
+        hrms_system: integrationData.hrms_system
+      }
+
 
       const hrmsParams = [
         orgId,
         ...hrmsFields.map(f => hrmsData[f]),
-        JSON.stringify(metadata)
+        JSON.stringify(hrmsMetadata)
       ]
 
       await query(hrmsSql, hrmsParams)
@@ -598,7 +623,9 @@ export async function updateOrganizationIntegration(
     await query('BEGIN', [])
 
     // Update organization_integrations
-    const metadata = integrationData.metadata_json || {}
+    const metadata = {
+      hrms_system: integrationData.hrms_system || null
+    }
 
     // Store hrms_system in metadata for reference on delete
     if (integrationData.hrms_system) {
@@ -669,12 +696,16 @@ export async function updateOrganizationIntegration(
         WHERE organization_id = $9 AND hrms_system = $10
       `
 
-      // Store fields not in hrms_integration in metadata
-      for (const [key, value] of Object.entries(integrationData)) {
-        if (!HRMS_FIELDS.has(key) && key !== 'metadata_json' && key !== 'is_hrms') {
-          metadata[key] = value
-        }
+      // Store all fields not in hrms_integration (or in EXCLUDE list) in metadata
+      const hrmsMetadata = {
+        api_key: integrationData.api_key,
+        login_url: integrationData.login_url,
+        base_url: integrationData.base_url,
+        provider_id: providerId,
+        module_ids: integrationData.module_ids || [],
+        hrms_system: integrationData.hrms_system
       }
+
 
       await query(hrmsUpdateSql, [
         integrationData.client_id,
@@ -684,7 +715,7 @@ export async function updateOrganizationIntegration(
         integrationData.token_expiry || null,
         integrationData.base_url || null,
         integrationData.status || 'active',
-        JSON.stringify(metadata),
+        JSON.stringify(hrmsMetadata),
         orgId,
         hrmsSystem
       ])
@@ -745,290 +776,6 @@ export async function deleteOrganizationIntegration(
     await query('ROLLBACK', [])
     console.error('❌ DB Error: deleteOrganizationIntegration failed', error)
     return { success: false, error: error.message || 'Delete failed' }
-  }
-}
-
-/**
- * Batch create organization integrations - multiple modules in single transaction
- */
-export async function batchCreateOrganizationIntegrations(
-  orgId: string,
-  integrations: Array<{
-    providerId: string
-    agentId: string
-    moduleId: string
-    integrationData: Record<string, any>
-  }>
-): Promise<{ success: boolean; ids?: string[]; error?: string }> {
-  try {
-    await query('BEGIN', [])
-
-    const createdIds: string[] = []
-
-    for (const integration of integrations) {
-      // Insert into organization_integrations
-      const orgIntegrationSql = `
-        INSERT INTO public.organization_integrations (
-          organization_id, provider_id, agent_id, module_id,
-          client_id, client_secret, api_key,
-          access_token, refresh_token, token_expiry, base_url,
-          login_url, metadata_json, status
-        )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
-        RETURNING id
-      `
-
-      const metadata: Record<string, any> = integration.integrationData.metadata_json || {}
-
-      // Store hrms_system in metadata for reference on delete
-      if (integration.integrationData.hrms_system) {
-        metadata.hrms_system = integration.integrationData.hrms_system
-      }
-
-      const orgIntegrationRes = await query(orgIntegrationSql, [
-        orgId,
-        integration.providerId,
-        integration.agentId,
-        integration.moduleId,
-        integration.integrationData.client_id,
-        integration.integrationData.client_secret,
-        integration.integrationData.api_key,
-        integration.integrationData.access_token,
-        integration.integrationData.refresh_token || null,
-        integration.integrationData.token_expiry || null,
-        integration.integrationData.base_url || null,
-        integration.integrationData.login_url || null,
-        JSON.stringify(metadata),
-        integration.integrationData.status || 'active'
-      ])
-
-      const integrationId = orgIntegrationRes.rows[0].id
-      createdIds.push(integrationId)
-
-      // Get provider info to check if it's HRMS
-      const providerRes = await query(
-        'SELECT code FROM public.integration_providers WHERE id = $1',
-        [integration.providerId]
-      )
-
-      const providerCode = providerRes.rows[0]?.code
-
-      // If this is an HRMS provider or hrms_system is provided, insert/update in hrms_integration
-      if (providerCode === 'hrms' || integration.integrationData.is_hrms === true || integration.integrationData.hrms_system) {
-        const hrmsData: Record<string, any> = {
-          organization_id: orgId,
-          hrms_system: integration.integrationData.hrms_system,
-          client_id: integration.integrationData.client_id,
-          client_secret_encrypted: integration.integrationData.client_secret,
-          access_token: integration.integrationData.access_token,
-          refresh_token_encrypted: integration.integrationData.refresh_token || null,
-          token_expiry: integration.integrationData.token_expiry || null,
-          base_url: integration.integrationData.base_url || null,
-          status: integration.integrationData.status || 'active'
-        }
-
-        // Store fields not in hrms_integration in metadata
-        for (const [key, value] of Object.entries(integration.integrationData)) {
-          if (!HRMS_FIELDS.has(key) && key !== 'metadata_json') {
-            metadata[key] = value
-          }
-        }
-
-        const hrmsFields = Object.keys(hrmsData).filter(k => k !== 'organization_id')
-        const hrmsValues = hrmsFields.map((_, i) => `$${i + 2}`)
-
-        const hrmsSql = `
-          INSERT INTO public.hrms_integration (
-            organization_id, ${hrmsFields.join(', ')}
-          )
-          VALUES ($1, ${hrmsValues.join(', ')})
-          ON CONFLICT (organization_id, hrms_system)
-          DO UPDATE SET
-            ${hrmsFields.map(f => `${f} = EXCLUDED.${f}`).join(', ')},
-            updated_at = CURRENT_TIMESTAMP,
-            metadata_json = $${hrmsFields.length + 2}
-          RETURNING id
-        `
-
-        const hrmsParams = [
-          orgId,
-          ...hrmsFields.map(f => hrmsData[f]),
-          JSON.stringify(metadata)
-        ]
-
-        await query(hrmsSql, hrmsParams)
-      }
-    }
-
-    await query('COMMIT', [])
-    return { success: true, ids: createdIds }
-  } catch (error: any) {
-    await query('ROLLBACK', [])
-    console.error('❌ DB Error: batchCreateOrganizationIntegrations failed', error)
-    return { success: false, error: error.message || 'Batch create failed' }
-  }
-}
-
-/**
- * Batch update organization integrations - update multiple modules in single transaction
- */
-export async function batchUpdateOrganizationIntegrations(
-  orgId: string,
-  updates: Array<{
-    integrationId: string
-    providerId: string
-    integrationData: Record<string, any>
-  }>
-): Promise<{ success: boolean; error?: string }> {
-  try {
-    await query('BEGIN', [])
-
-    for (const update of updates) {
-      const metadata = update.integrationData.metadata_json || {}
-
-      if (update.integrationData.hrms_system) {
-        metadata.hrms_system = update.integrationData.hrms_system
-      }
-
-      const orgIntegrationSql = `
-        UPDATE public.organization_integrations
-        SET
-          client_id = $1,
-          client_secret = $2,
-          api_key = $3,
-          access_token = $4,
-          refresh_token = $5,
-          token_expiry = $6,
-          base_url = $7,
-          login_url = $8,
-          metadata_json = $9,
-          status = $10,
-          updated_at = CURRENT_TIMESTAMP
-        WHERE id = $11 AND organization_id = $12
-        RETURNING id, provider_id
-      `
-
-      const orgIntegrationRes = await query(orgIntegrationSql, [
-        update.integrationData.client_id,
-        update.integrationData.client_secret,
-        update.integrationData.api_key,
-        update.integrationData.access_token,
-        update.integrationData.refresh_token || null,
-        update.integrationData.token_expiry || null,
-        update.integrationData.base_url || null,
-        update.integrationData.login_url || null,
-        JSON.stringify(metadata),
-        update.integrationData.status || 'active',
-        update.integrationId,
-        orgId
-      ])
-
-      if (!orgIntegrationRes.rowCount) {
-        throw new Error(`Integration ${update.integrationId} not found`)
-      }
-
-      const providerRes = await query(
-        'SELECT code FROM public.integration_providers WHERE id = $1',
-        [update.providerId]
-      )
-
-      const providerCode = providerRes.rows[0]?.code
-
-      if (providerCode === 'hrms' || update.integrationData.is_hrms === true || update.integrationData.hrms_system) {
-        const hrmsSystem = update.integrationData.hrms_system
-
-        const hrmsUpdateSql = `
-          UPDATE public.hrms_integration
-          SET
-            client_id = $1,
-            client_secret_encrypted = $2,
-            access_token = $3,
-            refresh_token_encrypted = $4,
-            token_expiry = $5,
-            base_url = $6,
-            status = $7,
-            metadata_json = $8,
-            updated_at = CURRENT_TIMESTAMP
-          WHERE organization_id = $9 AND hrms_system = $10
-        `
-
-        for (const [key, value] of Object.entries(update.integrationData)) {
-          if (!HRMS_FIELDS.has(key) && key !== 'metadata_json' && key !== 'is_hrms') {
-            metadata[key] = value
-          }
-        }
-
-        await query(hrmsUpdateSql, [
-          update.integrationData.client_id,
-          update.integrationData.client_secret,
-          update.integrationData.access_token,
-          update.integrationData.refresh_token || null,
-          update.integrationData.token_expiry || null,
-          update.integrationData.base_url || null,
-          update.integrationData.status || 'active',
-          JSON.stringify(metadata),
-          orgId,
-          hrmsSystem
-        ])
-      }
-    }
-
-    await query('COMMIT', [])
-    return { success: true }
-  } catch (error: any) {
-    await query('ROLLBACK', [])
-    console.error('❌ DB Error: batchUpdateOrganizationIntegrations failed', error)
-    return { success: false, error: error.message || 'Batch update failed' }
-  }
-}
-
-/**
- * Batch delete organization integrations
- */
-export async function batchDeleteOrganizationIntegrations(
-  orgId: string,
-  integrationIds: string[]
-): Promise<{ success: boolean; error?: string }> {
-  try {
-    await query('BEGIN', [])
-
-    for (const integrationId of integrationIds) {
-      // Get hrms_system from metadata if this is an HRMS integration
-      const integrationRes = await query(
-        `SELECT metadata_json FROM public.organization_integrations WHERE id = $1`,
-        [integrationId]
-      )
-
-      if (integrationRes.rowCount) {
-        const metadata = integrationRes.rows[0]?.metadata_json || {}
-        const hrmsSystem = metadata.hrms_system
-
-        // Delete from hrms_integration if hrms_system exists
-        if (hrmsSystem) {
-          await query(
-            'DELETE FROM public.hrms_integration WHERE organization_id = $1 AND hrms_system = $2',
-            [orgId, hrmsSystem]
-          )
-        }
-      }
-
-      // Delete from organization_integrations
-      const deleteRes = await query(
-        'DELETE FROM public.organization_integrations WHERE id = $1 AND organization_id = $2',
-        [integrationId, orgId]
-      )
-
-      if (!deleteRes.rowCount) {
-        throw new Error(`Integration ${integrationId} not found`)
-      }
-    }
-
-    await query('COMMIT', [])
-    return { success: true }
-  } catch (error: any) {
-    await query('ROLLBACK', [])
-    console.error('❌ DB Error: batchDeleteOrganizationIntegrations failed', error)
-    return { success: false, error: error.message || 'Batch delete failed' }
   }
 }
 
