@@ -13,11 +13,11 @@ export default defineEventHandler(async (event) => {
 
     try {
         const params = await readBody(event);
-    const token = event.node.req.headers['authorization']?.split(' ')[1];
+        const token = event.node.req.headers['authorization']?.split(' ')[1];
 
-    if (!token) throw new CustomError('Unauthorized: No token provided', 401);
+        if (!token) throw new CustomError('Unauthorized: No token provided', 401);
 
-    const { user_id, name, email, company, contact_number, org_country, org_tax_id, billing_address } = params;
+        const { user_id, name, email, company, contact_number, org_country, org_tax_id, billing_address } = params;
 
         /** ------------------------------------------------------------------
          * Detect Billing-Only Update
@@ -158,7 +158,7 @@ export default defineEventHandler(async (event) => {
             await query(
                 `INSERT INTO organization_departments (org_id, name, description, status, created_by, is_system)
                  VALUES ($1, $2, $3, $4, $5, $6)`,
-                [orgId, 'Common', 'System department for unassigned documents', 'active', user_id, true]
+                [orgId, 'Common', 'Default system department for managing common users and artifacts.', 'active', user_id, true]
             );
 
             // Update user org

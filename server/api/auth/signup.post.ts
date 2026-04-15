@@ -208,7 +208,7 @@ export default defineEventHandler(async (event) => {
     await query(
       `INSERT INTO organization_departments (org_id, name, description, status, created_by, is_system)
        VALUES ($1, $2, $3, $4, $5, $6)`,
-      [orgId, 'Common', 'System department for unassigned documents', 'active', userId, true]
+      [orgId, 'Common', 'Default system department for managing common users and artifacts.', 'active', userId, true]
     );
 
     if (awsCustomerId) {
